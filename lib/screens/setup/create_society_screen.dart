@@ -95,9 +95,9 @@ class _CreateSocietyScreenState extends State<CreateSocietyScreen> {
                  state: _currentStep > 0 ? StepState.complete : StepState.indexed,
                  content: Column(
                     children: [
-                       CustomTextField(controller: _nameController, hint: 'Society Name', prefixIcon: Icons.business),
+                       CustomTextField(controller: _nameController, label: 'Society Name', hint: 'Society Name', prefixIcon: Icons.business),
                        const SizedBox(height: 16),
-                       CustomTextField(controller: _addressController, hint: 'Address', prefixIcon: Icons.map),
+                       CustomTextField(controller: _addressController, label: 'Address', hint: 'Address', prefixIcon: Icons.map),
                     ]
                  )
               ),
@@ -107,7 +107,7 @@ class _CreateSocietyScreenState extends State<CreateSocietyScreen> {
                  state: _currentStep > 1 ? StepState.complete : StepState.indexed,
                  content: Column(
                     children: [
-                       CustomTextField(controller: _maintenanceController, hint: 'Maintenance Amount', prefixIcon: Icons.currency_rupee, keyboardType: TextInputType.number),
+                       CustomTextField(controller: _maintenanceController, label: 'Maintenance Amount', hint: 'Maintenance Amount', prefixIcon: Icons.currency_rupee, keyboardType: TextInputType.number),
                        SwitchListTile(
                           title: const Text('Allow Cash Payments'),
                           value: _cashEnabled,
@@ -129,9 +129,9 @@ class _CreateSocietyScreenState extends State<CreateSocietyScreen> {
                  state: _currentStep > 2 ? StepState.complete : StepState.indexed,
                  content: Column(
                     children: [
-                       CustomTextField(controller: _guardNameController, hint: 'Guard Name', prefixIcon: Icons.security),
+                       CustomTextField(controller: _guardNameController, label: 'Guard Name', hint: 'Guard Name', prefixIcon: Icons.security),
                        const SizedBox(height: 16),
-                       CustomTextField(controller: _guardPhoneController, hint: 'Guard Phone', prefixIcon: Icons.phone_android, keyboardType: TextInputType.phone),
+                       CustomTextField(controller: _guardPhoneController, label: 'Guard Phone', hint: 'Guard Phone', prefixIcon: Icons.phone_android, keyboardType: TextInputType.phone),
                     ]
                  )
               ),

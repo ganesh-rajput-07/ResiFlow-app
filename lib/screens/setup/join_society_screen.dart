@@ -88,6 +88,7 @@ class _JoinSocietyScreenState extends State<JoinSocietyScreen> {
                    const SizedBox(height: 8),
                    CustomTextField(
                       controller: _codeController,
+                      label: 'Society Code',
                       hint: 'Enter Code (e.g., ORX-1234)',
                       prefixIcon: Icons.business,
                    ),
@@ -96,12 +97,14 @@ class _JoinSocietyScreenState extends State<JoinSocietyScreen> {
                    const SizedBox(height: 8),
                    CustomTextField(
                       controller: _nameController,
+                      label: 'Full Name',
                       hint: 'Full Name',
                       prefixIcon: Icons.person,
                    ),
                    const SizedBox(height: 16),
                    CustomTextField(
                       controller: _phoneController,
+                      label: 'Phone Number',
                       hint: 'Phone Number',
                       keyboardType: TextInputType.phone,
                       prefixIcon: Icons.phone,
@@ -109,6 +112,7 @@ class _JoinSocietyScreenState extends State<JoinSocietyScreen> {
                    const SizedBox(height: 16),
                    CustomTextField(
                       controller: _flatController,
+                      label: 'Flat/Unit Number',
                       hint: 'Flat/Unit Number (e.g. A-101)',
                       prefixIcon: Icons.door_front_door,
                    ),
