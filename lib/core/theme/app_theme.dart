@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
-  static const Color primaryColor = Color(0xFF5C5AC7); // The purple/indigo from screenshot
-  static const Color primaryLight = Color(0xFF8A88E0);
-  static const Color primaryDark = Color(0xFF3F3D9A);
+  static const Color primaryColor = Color(0xFF1F3A5F); // Deep dark blue
+  static const Color primaryLight = Color(0xFFE3EBF5); // Very light blue accent
+  static const Color primaryDark = Color(0xFF102138);
   static const Color backgroundColor = Color(0xFFF5F6FA);
   static const Color cardColor = Colors.white;
-  static const Color textDark = Color(0xFF2C2C2C);
-  static const Color textLight = Color(0xFF808080);
+  static const Color textDark = Color(0xFF1B263B);
+  static const Color textLight = Color(0xFF6B7E96);
   
   static ThemeData get lightTheme {
     return ThemeData(

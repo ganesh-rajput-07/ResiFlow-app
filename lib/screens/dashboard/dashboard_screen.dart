@@ -5,6 +5,8 @@ import '../../core/theme/app_theme.dart';
 import '../auth/login_screen.dart';
 import '../gatekeeper/create_pass_screen.dart';
 import '../scanner/qr_scanner_screen.dart';
+import '../approvals/pre_approval_screen.dart';
+import '../approvals/approval_management_screen.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
@@ -67,7 +69,13 @@ class DashboardScreen extends StatelessWidget {
                   _DashboardItem(
                     icon: Icons.people_outline,
                     title: 'Pre-Approval',
-                    onTap: () {},
+                    onTap: () {
+                      if (user?['role'] == 'admin') {
+                        Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ApprovalManagementScreen()));
+                      } else {
+                        Navigator.of(context).push(MaterialPageRoute(builder: (_) => const PreApprovalScreen()));
+                      }
+                    },
                   ),
                   _DashboardItem(
                     icon: Icons.payment,

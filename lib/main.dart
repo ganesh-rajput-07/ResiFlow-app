@@ -4,6 +4,7 @@ import 'core/theme/app_theme.dart';
 import 'providers/auth_provider.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/dashboard/dashboard_screen.dart';
+import 'screens/onboarding/onboarding_decision_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -62,7 +63,7 @@ class _AuthWrapperState extends State<AuthWrapper> {
     
     return Consumer<AuthProvider>(
       builder: (context, auth, _) {
-        return auth.isAuthenticated ? const DashboardScreen() : const LoginScreen();
+        return auth.isAuthenticated ? const DashboardScreen() : const OnboardingDecisionScreen();
       },
     );
   }
