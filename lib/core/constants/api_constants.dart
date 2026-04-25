@@ -15,4 +15,16 @@ class ApiConstants {
   static const String qrValidate = '$baseUrl/gatekeeper/gate-passes/validate/';
   
   static const String preApprovals = '$baseUrl/gatekeeper/pre-approvals/';
+  
+  static const String notices = '$baseUrl/communication/notices/';
+  static const String communityPosts = '$baseUrl/communication/community-posts/';
+  static const String communityComments = '$baseUrl/communication/community-comments/';
+  
+  static const String penalties = '$baseUrl/finance/penalties/';
+  static const String bills = '$baseUrl/finance/bills/';
+  
+  static const String helpers = '$baseUrl/directory/staff/';
+
+  static String joinSociety(int id) => '$societies$id/join/';
+  static String societyDetail(int id) => '$societies$id/';
 }

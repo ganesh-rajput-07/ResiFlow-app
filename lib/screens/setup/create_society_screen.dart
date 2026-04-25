@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../providers/auth_provider.dart';
+import '../dashboard/dashboard_screen.dart';
 import '../../core/theme/app_theme.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
@@ -30,23 +33,26 @@ class _CreateSocietyScreenState extends State<CreateSocietyScreen> {
   final _guardPhoneController = TextEditingController();
   String _guardShift = 'Day';
 
-  void _finishSetup() {
-    // TODO: Wire to Real backend setup procedure
-    showDialog(
-      context: context, 
-      builder: (_) => AlertDialog(
-        title: const Text('Setup Complete!'),
-        content: const Text('Your society has been created successfully. Welcome Admin!'),
-        actions: [
-           TextButton(
-             onPressed: () {
-               Navigator.of(context).popUntil((route) => route.isFirst);
-             }, 
-             child: const Text('Go to Login')
-           )
-        ]
-      )
-    );
+  void _finishSetup() async {
+    final provider = Provider.of<AuthProvider>(context, listen: false);
+    final success = await provider.createSociety({
+        'name': _nameController.text,
+        'address': _addressController.text,
+        'city': _cityController.text,
+        'state': _stateController.text,
+        'pincode': _pincodeController.text,
+    });
+    
+    if (success && mounted) {
+       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Society Generated Successfully!'), backgroundColor: Colors.green));
+       // Push Dashboard and remove everything else from stack
+       Navigator.of(context).pushAndRemoveUntil(
+         MaterialPageRoute(builder: (_) => const DashboardScreen()), 
+         (route) => false
+       );
+    } else if (mounted) {
+       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(provider.error ?? 'Failed to setup society.'), backgroundColor: Colors.red));
+    }
   }
 
   @override

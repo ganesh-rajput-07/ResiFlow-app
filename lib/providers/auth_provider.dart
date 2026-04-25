@@ -41,6 +41,47 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
+  Future<bool> register(Map<String, String> data) async {
+    _setLoading(true);
+    _error = null;
+    try {
+      final response = await _apiService.post(ApiConstants.register, data);
+      if (response.statusCode == 201) {
+        return true;
+      } else {
+        final body = jsonDecode(response.body);
+        _error = body.toString(); // Shows exactly which field failed from Django
+        return false;
+      }
+    } catch (e) {
+      _error = 'Registration failed. Check network connection.';
+      return false;
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  Future<bool> createSociety(Map<String, String> data) async {
+    _setLoading(true);
+    _error = null;
+    try {
+      final response = await _apiService.post(ApiConstants.societies, data);
+      if (response.statusCode == 201) {
+        // Automatically sync the profile so `user['society']` becomes populated globally.
+        await fetchProfile();
+        return true;
+      } else {
+        _error = 'Failed to create society';
+        return false;
+      }
+    } catch (e) {
+      _error = 'Network error while creating society';
+      return false;
+    } finally {
+      _setLoading(false);
+    }
+  }
+
   Future<void> fetchProfile() async {
     _setLoading(true);
     try {

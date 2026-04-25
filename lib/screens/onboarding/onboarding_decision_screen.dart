@@ -74,21 +74,6 @@ class OnboardingDecisionScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 24),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text('Already have an account? '),
-                  GestureDetector(
-                    child: const Text('Login here', style: TextStyle(color: AppTheme.primaryColor, fontWeight: FontWeight.bold)),
-                    onTap: () {
-                      Navigator.of(context).push(MaterialPageRoute(
-                        builder: (_) => const LoginScreen(),
-                      ));
-                    },
-                  )
-                ],
-              ),
-              const SizedBox(height: 24),
             ],
           ),
         ),

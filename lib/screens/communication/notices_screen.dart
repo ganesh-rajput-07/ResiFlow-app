@@ -1,6 +1,9 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../services/api_service.dart';
+import '../../core/constants/api_constants.dart';
 import '../../core/theme/app_theme.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
@@ -15,6 +18,32 @@ class NoticesScreen extends StatefulWidget {
 class _NoticesScreenState extends State<NoticesScreen> {
   final _titleController = TextEditingController();
   final _contentController = TextEditingController();
+  final ApiService _apiService = ApiService();
+  
+  List<dynamic> _notices = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchNotices();
+  }
+
+  Future<void> _fetchNotices() async {
+    setState(() => _isLoading = true);
+    try {
+      final response = await _apiService.get(ApiConstants.notices);
+      if (response.statusCode == 200) {
+        setState(() {
+          _notices = jsonDecode(response.body);
+        });
+      }
+    } catch (e) {
+      debugPrint("Error fetching notices: $e");
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
 
   void _showAddNoticeSheet() {
     showModalBottomSheet(
@@ -34,11 +63,20 @@ class _NoticesScreenState extends State<NoticesScreen> {
               const SizedBox(height: 12),
               CustomTextField(controller: _contentController, label: 'Details', hint: 'Provide notice contents...', maxLines: 4),
               const SizedBox(height: 24),
-              CustomButton(text: 'Publish Notice', onPressed: () {
-                _titleController.clear();
-                _contentController.clear();
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Notice Broadcasted!')));
+              CustomButton(text: 'Publish Notice', onPressed: () async {
+                final success = await _apiService.post(ApiConstants.notices, {
+                  'title': _titleController.text,
+                  'content': _contentController.text,
+                });
+                if (success.statusCode == 201 && mounted) {
+                  _titleController.clear();
+                  _contentController.clear();
+                  Navigator.pop(context);
+                  _fetchNotices(); // refresh list
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Notice Broadcasted!'), backgroundColor: Colors.green));
+                } else if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Failed to publish notice.'), backgroundColor: Colors.red));
+                }
               }),
               const SizedBox(height: 32),
             ]
@@ -55,40 +93,40 @@ class _NoticesScreenState extends State<NoticesScreen> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Notice Board')),
-      body: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: 2,
-        itemBuilder: (context, index) {
-          return Card(
-            margin: const EdgeInsets.only(bottom: 16),
-            child: Padding(
+      body: _isLoading 
+        ? const Center(child: CircularProgressIndicator()) 
+        : _notices.isEmpty 
+          ? const Center(child: Text("No notices broadcasted yet."))
+          : ListView.builder(
               padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Flexible(
-                        child: Text('Annual Maintenance Meeting', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(color: Colors.red.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
-                        child: const Text('IMPORTANT', style: TextStyle(color: Colors.red, fontSize: 10, fontWeight: FontWeight.bold)),
-                      )
-                    ],
+              itemCount: _notices.length,
+              itemBuilder: (context, index) {
+                final notice = _notices[index];
+                return Card(
+                  margin: const EdgeInsets.only(bottom: 16),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Flexible(
+                              child: Text(notice['title'] ?? 'Notice', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Text(notice['content'] ?? ''),
+                        const SizedBox(height: 12),
+                        Text('Published by: ${notice['created_by_name'] ?? 'Admin'}', style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                      ],
+                    ),
                   ),
-                  const SizedBox(height: 8),
-                  const Text('Please gather around the main clubhouse at 5 PM on Sunday to discuss the painting budget.'),
-                  const SizedBox(height: 12),
-                  const Text('Published by: Secretary • 12 Oct', style: TextStyle(color: Colors.grey, fontSize: 12)),
-                ],
-              ),
+                );
+              },
             ),
-          );
-        },
-      ),
       floatingActionButton: isAdmin ? FloatingActionButton.extended(
         onPressed: _showAddNoticeSheet,
         backgroundColor: AppTheme.primaryColor,
