@@ -5,6 +5,8 @@ import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../core/theme/app_theme.dart';
 import '../dashboard/dashboard_screen.dart';
+import '../onboarding/onboarding_decision_screen.dart';
+import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -25,9 +27,11 @@ class _LoginScreenState extends State<LoginScreen> {
     );
 
     if (success && mounted) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const DashboardScreen()),
-      );
+      if (provider.user?['society'] == null) {
+        Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const OnboardingDecisionScreen()));
+      } else {
+        Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const DashboardScreen()));
+      }
     } else if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -102,7 +106,22 @@ class _LoginScreenState extends State<LoginScreen> {
                 onPressed: _handleLogin,
                 isLoading: isLoading,
               ),
-            ],
+              const SizedBox(height: 24),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text("Don't have an account? "),
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.of(context).pushReplacement(
+                        MaterialPageRoute(builder: (_) => const RegisterScreen()),
+                      );
+                    },
+                    child: const Text('Register Here', style: TextStyle(color: AppTheme.primaryColor, fontWeight: FontWeight.bold)),
+                  )
+                ],
+              ),
+              const SizedBox(height: 20),
           ),
         ),
       ),
