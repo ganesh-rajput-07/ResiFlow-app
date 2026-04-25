@@ -7,6 +7,12 @@ import '../gatekeeper/create_pass_screen.dart';
 import '../scanner/qr_scanner_screen.dart';
 import '../approvals/pre_approval_screen.dart';
 import '../approvals/approval_management_screen.dart';
+import '../admin/society_config_screen.dart';
+import '../admin/invite_members_screen.dart';
+import '../finance/penalties_screen.dart';
+import '../communication/community_forum_screen.dart';
+import '../communication/notices_screen.dart';
+import '../admin/manage_helpers_screen.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
@@ -53,6 +59,42 @@ class DashboardScreen extends StatelessWidget {
               ),
             ],
             const SizedBox(height: 32),
+            if (user?['role'] == 'admin')
+              _buildSection(
+                title: 'Admin Panel',
+                items: [
+                  _DashboardItem(
+                    icon: Icons.settings,
+                    title: 'Society Config',
+                    onTap: () {
+                      Navigator.of(context).push(MaterialPageRoute(builder: (_) => const SocietyConfigScreen()));
+                    },
+                  ),
+                  _DashboardItem(
+                    icon: Icons.person_add_alt_1,
+                    title: 'Invite Residents',
+                    onTap: () {
+                      Navigator.of(context).push(MaterialPageRoute(builder: (_) => const InviteMembersScreen()));
+                    },
+                  ),
+                  _DashboardItem(
+                    icon: Icons.gavel,
+                    title: 'Penalties',
+                    onTap: () {
+                      Navigator.of(context).push(MaterialPageRoute(builder: (_) => const PenaltiesScreen()));
+                    },
+                  ),
+                  _DashboardItem(
+                    icon: Icons.cleaning_services,
+                    title: 'Helpers',
+                    onTap: () {
+                      Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ManageHelpersScreen()));
+                    },
+                  ),
+                ],
+              ),
+            if (user?['role'] == 'admin') const SizedBox(height: 24),
+            
             if (user?['role'] == 'admin' || user?['role'] == 'resident')
               _buildSection(
                 title: 'Quick Access',
@@ -114,12 +156,16 @@ class DashboardScreen extends StatelessWidget {
                 _DashboardItem(
                   icon: Icons.campaign_outlined,
                   title: 'Notices',
-                  onTap: () {},
+                  onTap: () {
+                    Navigator.of(context).push(MaterialPageRoute(builder: (_) => const NoticesScreen()));
+                  },
                 ),
                 _DashboardItem(
-                  icon: Icons.report_problem_outlined,
-                  title: 'Complaints',
-                  onTap: () {},
+                  icon: Icons.forum_outlined,
+                  title: 'Community',
+                  onTap: () {
+                    Navigator.of(context).push(MaterialPageRoute(builder: (_) => const CommunityForumScreen()));
+                  },
                 ),
               ],
             ),

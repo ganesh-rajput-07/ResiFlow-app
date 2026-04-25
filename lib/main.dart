@@ -63,7 +63,17 @@ class _AuthWrapperState extends State<AuthWrapper> {
     
     return Consumer<AuthProvider>(
       builder: (context, auth, _) {
-        return auth.isAuthenticated ? const DashboardScreen() : const OnboardingDecisionScreen();
+        if (!auth.isAuthenticated) {
+          return const LoginScreen();
+        }
+        
+        // If the user has no society assigned (society field is null), redirect to Onboarding
+        if (auth.user?['society'] == null) {
+          return const OnboardingDecisionScreen();
+        }
+
+        // Default to Dashboard
+        return const DashboardScreen();
       },
     );
   }
