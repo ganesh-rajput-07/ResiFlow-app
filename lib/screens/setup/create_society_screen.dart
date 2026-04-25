@@ -16,6 +16,9 @@ class _CreateSocietyScreenState extends State<CreateSocietyScreen> {
   // Step 1: Basic Info
   final _nameController = TextEditingController();
   final _addressController = TextEditingController();
+  final _cityController = TextEditingController();
+  final _stateController = TextEditingController();
+  final _pincodeController = TextEditingController();
   
   // Step 2: Payment
   final _maintenanceController = TextEditingController();
@@ -25,6 +28,7 @@ class _CreateSocietyScreenState extends State<CreateSocietyScreen> {
   // Step 3: Gatekeeper
   final _guardNameController = TextEditingController();
   final _guardPhoneController = TextEditingController();
+  String _guardShift = 'Day';
 
   void _finishSetup() {
     // TODO: Wire to Real backend setup procedure
@@ -98,6 +102,16 @@ class _CreateSocietyScreenState extends State<CreateSocietyScreen> {
                        CustomTextField(controller: _nameController, label: 'Society Name', hint: 'Society Name', prefixIcon: Icons.business),
                        const SizedBox(height: 16),
                        CustomTextField(controller: _addressController, label: 'Address', hint: 'Address', prefixIcon: Icons.map),
+                       const SizedBox(height: 16),
+                       Row(
+                         children: [
+                           Expanded(child: CustomTextField(controller: _cityController, label: 'City', hint: 'City')),
+                           const SizedBox(width: 16),
+                           Expanded(child: CustomTextField(controller: _stateController, label: 'State', hint: 'State')),
+                         ],
+                       ),
+                       const SizedBox(height: 16),
+                       CustomTextField(controller: _pincodeController, label: 'Pincode', hint: 'e.g. 400001', keyboardType: TextInputType.number, prefixIcon: Icons.pin_drop),
                     ]
                  )
               ),
@@ -132,6 +146,22 @@ class _CreateSocietyScreenState extends State<CreateSocietyScreen> {
                        CustomTextField(controller: _guardNameController, label: 'Guard Name', hint: 'Guard Name', prefixIcon: Icons.security),
                        const SizedBox(height: 16),
                        CustomTextField(controller: _guardPhoneController, label: 'Guard Phone', hint: 'Guard Phone', prefixIcon: Icons.phone_android, keyboardType: TextInputType.phone),
+                       const SizedBox(height: 16),
+                       DropdownButtonFormField<String>(
+                         value: _guardShift,
+                         decoration: InputDecoration(
+                           labelText: 'Guard Shift',
+                           prefixIcon: const Icon(Icons.access_time),
+                           border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                         ),
+                         items: ['Day', 'Night', '24x7'].map((String value) {
+                           return DropdownMenuItem<String>(
+                             value: value,
+                             child: Text(value),
+                           );
+                         }).toList(),
+                         onChanged: (val) => setState(() => _guardShift = val!),
+                       )
                     ]
                  )
               ),

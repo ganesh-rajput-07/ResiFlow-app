@@ -17,6 +17,10 @@ class _JoinSocietyScreenState extends State<JoinSocietyScreen> {
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
   final _flatController = TextEditingController();
+  final _personsController = TextEditingController(text: '1');
+  final _familyDetailsController = TextEditingController();
+  final _vehiclesController = TextEditingController(text: '0');
+  final _parkingController = TextEditingController();
 
   bool _isLoading = false;
 
@@ -115,6 +119,31 @@ class _JoinSocietyScreenState extends State<JoinSocietyScreen> {
                       label: 'Flat/Unit Number',
                       hint: 'Flat/Unit Number (e.g. A-101)',
                       prefixIcon: Icons.door_front_door,
+                   ),
+                   const SizedBox(height: 24),
+                   const Text('Additional Information', style: TextStyle(fontWeight: FontWeight.bold)),
+                   const SizedBox(height: 16),
+                   Row(
+                     children: [
+                       Expanded(child: CustomTextField(controller: _personsController, label: 'Total Persons', hint: 'Count', keyboardType: TextInputType.number)),
+                       const SizedBox(width: 16),
+                       Expanded(child: CustomTextField(controller: _vehiclesController, label: 'Total Vehicles', hint: 'Count', keyboardType: TextInputType.number)),
+                     ],
+                   ),
+                   const SizedBox(height: 16),
+                   CustomTextField(
+                      controller: _parkingController,
+                      label: 'Parking Slot Number',
+                      hint: 'e.g. P-12, Basement B1',
+                      prefixIcon: Icons.local_parking,
+                   ),
+                   const SizedBox(height: 16),
+                   CustomTextField(
+                      controller: _familyDetailsController,
+                      label: 'Family Details',
+                      hint: 'Names & Ages of members',
+                      prefixIcon: Icons.groups,
+                      maxLines: 3,
                    ),
                    const SizedBox(height: 32),
                    CustomButton(
