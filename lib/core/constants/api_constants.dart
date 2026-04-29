@@ -1,7 +1,7 @@
 class ApiConstants {
   // Use your local IP address for physical device, or 10.0.2.2 for Android Emulator
   // Adjust this based on where your Django server is running
-  static const String baseUrl = 'http://127.0.0.1:8000/api';
+  static const String baseUrl = 'https://resiflow-backend.vercel.app/api';
   
   static const String login = '$baseUrl/auth/login/';
   static const String register = '$baseUrl/auth/register/';
