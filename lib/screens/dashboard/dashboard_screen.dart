@@ -10,6 +10,7 @@ import '../approvals/approval_management_screen.dart';
 import '../admin/society_config_screen.dart';
 import '../admin/invite_members_screen.dart';
 import '../finance/penalties_screen.dart';
+import '../finance/maintenance_finance_screen.dart';
 import '../communication/community_forum_screen.dart';
 import '../communication/notices_screen.dart';
 import '../admin/manage_helpers_screen.dart';
@@ -122,7 +123,9 @@ class DashboardScreen extends StatelessWidget {
                   _DashboardItem(
                     icon: Icons.payment,
                     title: 'Payments',
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.of(context).push(MaterialPageRoute(builder: (_) => const MaintenanceFinanceScreen()));
+                    },
                   ),
                 ],
               ),

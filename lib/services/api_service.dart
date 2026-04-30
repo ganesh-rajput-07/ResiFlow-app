@@ -38,6 +38,20 @@ class ApiService {
     );
   }
 
+  Future<http.Response> patch(String url, Map<String, dynamic> body) async {
+    final headers = await _getHeaders();
+    return await http.patch(
+      Uri.parse(url),
+      headers: headers,
+      body: jsonEncode(body),
+    );
+  }
+
+  Future<http.Response> delete(String url) async {
+    final headers = await _getHeaders();
+    return await http.delete(Uri.parse(url), headers: headers);
+  }
+
   // Token Management
   Future<void> saveTokens(String accessToken, String refreshToken) async {
     await _storage.write(key: 'access_token', value: accessToken);

@@ -1,96 +1,126 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_theme.dart';
-import '../../widgets/custom_button.dart';
-import '../../widgets/custom_text_field.dart';
+import 'wing_management_screen.dart';
+import 'manage_gatekeepers_screen.dart';
+import '../finance/maintenance_finance_screen.dart';
 
-class SocietyConfigScreen extends StatefulWidget {
+class SocietyConfigScreen extends StatelessWidget {
   const SocietyConfigScreen({super.key});
-
-  @override
-  State<SocietyConfigScreen> createState() => _SocietyConfigScreenState();
-}
-
-class _SocietyConfigScreenState extends State<SocietyConfigScreen> {
-  final _amountController = TextEditingController(text: '1500');
-  final _bankAccountController = TextEditingController(text: '0987654321234');
-  final _ifscController = TextEditingController(text: 'HDFC0001234');
-  
-  final _guardNameController = TextEditingController();
-  final _guardPhoneController = TextEditingController();
-
-  final _wingFormatController = TextEditingController(text: '101, 102, 103');
-  
-  bool _onlinePayments = true;
-  bool _cashPayments = true;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Society Configuration')),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildSectionHeader('Maintenance & Finance'),
-            const SizedBox(height: 16),
-            CustomTextField(controller: _amountController, label: 'Default Maintenance (₹)', hint: 'Amount', prefixIcon: Icons.currency_rupee, keyboardType: TextInputType.number),
-            const SizedBox(height: 12),
-            CustomTextField(controller: _bankAccountController, label: 'Society Bank Account No.', hint: 'Account No', prefixIcon: Icons.account_balance),
-            const SizedBox(height: 12),
-            CustomTextField(controller: _ifscController, label: 'IFSC Code', hint: 'IFSC', prefixIcon: Icons.account_balance_wallet),
-            SwitchListTile(
-              title: const Text('Online Payments Enabled'),
-              value: _onlinePayments,
-              activeColor: AppTheme.primaryColor,
-              onChanged: (v) => setState(() => _onlinePayments = v),
-              contentPadding: EdgeInsets.zero,
+            const Text(
+              'Manage your society',
+              style: TextStyle(fontSize: 16, color: Colors.grey),
             ),
-            SwitchListTile(
-              title: const Text('Cash Payments Enabled'),
-              value: _cashPayments,
-              activeColor: AppTheme.primaryColor,
-              onChanged: (v) => setState(() => _cashPayments = v),
-              contentPadding: EdgeInsets.zero,
+            const SizedBox(height: 24),
+            _ConfigCard(
+              icon: Icons.currency_rupee,
+              title: 'Maintenance & Finance',
+              subtitle: 'Bills, payments, UPI, penalties & monthly tracker',
+              color: Colors.green,
+              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MaintenanceFinanceScreen())),
             ),
-            const Divider(height: 48),
-
-            _buildSectionHeader('Manage Gatekeepers'),
             const SizedBox(height: 16),
-            CustomTextField(controller: _guardNameController, label: 'Guard Name', hint: 'Name', prefixIcon: Icons.security),
-            const SizedBox(height: 12),
-            CustomTextField(controller: _guardPhoneController, label: 'Guard Phone', hint: 'Mobile', prefixIcon: Icons.phone, keyboardType: TextInputType.phone),
-            const SizedBox(height: 12),
-            Align(
-              alignment: Alignment.centerRight,
-              child: TextButton.icon(
-                onPressed: () {},
-                icon: const Icon(Icons.add),
-                label: const Text('Add Gatekeeper'),
-              ),
+            _ConfigCard(
+              icon: Icons.security,
+              title: 'Manage Gatekeepers',
+              subtitle: 'Add, remove & manage society guards',
+              color: Colors.blue,
+              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ManageGatekeepersScreen())),
             ),
-            const Divider(height: 48),
-
-            _buildSectionHeader('Wing & Naming Conventions'),
             const SizedBox(height: 16),
-            CustomTextField(controller: _wingFormatController, label: 'Flat Naming Convention', hint: 'e.g. 101, 102 OR G1, G2', prefixIcon: Icons.format_list_numbered),
-            
-            const SizedBox(height: 48),
-            CustomButton(text: 'Save Configuration', onPressed: () {
-               ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Configuration saved successfully!')));
-               Navigator.pop(context);
-            }),
-            const SizedBox(height: 32),
+            _ConfigCard(
+              icon: Icons.apartment,
+              title: 'Wings & Units',
+              subtitle: 'Create wings, set naming conventions & unit types',
+              color: Colors.orange,
+              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const WingManagementScreen())),
+            ),
+            const SizedBox(height: 16),
+            _ConfigCard(
+              icon: Icons.info_outline,
+              title: 'Society Info',
+              subtitle: 'Building details, amenities & documents',
+              color: Colors.purple,
+              onTap: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Coming soon!')),
+                );
+              },
+            ),
           ],
         ),
       ),
     );
   }
+}
 
-  Widget _buildSectionHeader(String title) {
-    return Text(
-      title,
-      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.primaryDark),
+class _ConfigCard extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _ConfigCard({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.06),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Icon(icon, color: color, size: 28),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 4),
+                  Text(subtitle, style: const TextStyle(fontSize: 13, color: Colors.grey)),
+                ],
+              ),
+            ),
+            const Icon(Icons.chevron_right, color: Colors.grey),
+          ],
+        ),
+      ),
     );
   }
 }
