@@ -14,6 +14,7 @@ import '../finance/maintenance_finance_screen.dart';
 import '../communication/community_forum_screen.dart';
 import '../communication/notices_screen.dart';
 import '../admin/manage_helpers_screen.dart';
+import '../admin/resident_approval_screen.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
@@ -90,6 +91,13 @@ class DashboardScreen extends StatelessWidget {
                     title: 'Helpers',
                     onTap: () {
                       Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ManageHelpersScreen()));
+                    },
+                  ),
+                  _DashboardItem(
+                    icon: Icons.how_to_reg,
+                    title: 'Approvals',
+                    onTap: () {
+                      Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ResidentApprovalScreen()));
                     },
                   ),
                 ],

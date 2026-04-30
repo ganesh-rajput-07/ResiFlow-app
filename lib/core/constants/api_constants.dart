@@ -15,6 +15,8 @@ class ApiConstants {
   static String societyDetail(int id) => '$societies$id/';
   static String setupWing(int id) => '$societies$id/setup-wing/';
   static String joinSociety(int id) => '$societies$id/join/';
+  static const String joinRequests = '$baseUrl/society/join-requests/';
+  static const String submitJoinRequest = '$baseUrl/society/join-requests/submit/';
   
   // Gatekeeper
   static const String gatePasses = '$baseUrl/gatekeeper/gate-passes/';

@@ -43,7 +43,8 @@ class _WingManagementScreenState extends State<WingManagementScreen> {
 
   void _showAddWingSheet() {
     final nameController = TextEditingController();
-    final unitsController = TextEditingController();
+    final floorsController = TextEditingController();
+    final flatsController = TextEditingController();
     String numberFormat = 'floor_based';
 
     showModalBottomSheet(
@@ -68,7 +69,17 @@ class _WingManagementScreenState extends State<WingManagementScreen> {
                   const SizedBox(height: 16),
                   CustomTextField(controller: nameController, label: 'Wing Name', hint: 'e.g. A, B, C', prefixIcon: Icons.apartment),
                   const SizedBox(height: 12),
-                  CustomTextField(controller: unitsController, label: 'Total Units', hint: 'e.g. 12', keyboardType: TextInputType.number, prefixIcon: Icons.door_front_door),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: CustomTextField(controller: floorsController, label: 'Total Floors', hint: 'e.g. 10', keyboardType: TextInputType.number, prefixIcon: Icons.layers),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: CustomTextField(controller: flatsController, label: 'Flats/Floor', hint: 'e.g. 4', keyboardType: TextInputType.number, prefixIcon: Icons.door_front_door),
+                      ),
+                    ],
+                  ),
                   const SizedBox(height: 16),
                   const Text('Numbering Format', style: TextStyle(fontWeight: FontWeight.w600)),
                   const SizedBox(height: 8),
@@ -97,7 +108,7 @@ class _WingManagementScreenState extends State<WingManagementScreen> {
                   CustomButton(
                     text: 'Create Wing & Generate Units',
                     onPressed: () async {
-                      if (nameController.text.isEmpty || unitsController.text.isEmpty) return;
+                      if (nameController.text.isEmpty || floorsController.text.isEmpty || flatsController.text.isEmpty) return;
                       final provider = Provider.of<AuthProvider>(ctx, listen: false);
                       final societyId = provider.user?['society'];
                       if (societyId == null) return;
@@ -106,7 +117,8 @@ class _WingManagementScreenState extends State<WingManagementScreen> {
                         ApiConstants.setupWing(societyId),
                         {
                           'name': nameController.text,
-                          'total_units': int.tryParse(unitsController.text) ?? 1,
+                          'total_floors': int.tryParse(floorsController.text) ?? 1,
+                          'flats_per_floor': int.tryParse(flatsController.text) ?? 1,
                           'number_format': numberFormat,
                         },
                       );
