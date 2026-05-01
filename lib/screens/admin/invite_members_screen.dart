@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/api_service.dart';
 import '../../core/constants/api_constants.dart';
@@ -20,7 +21,8 @@ class _InviteMembersScreenState extends State<InviteMembersScreen> {
   final _mobileController = TextEditingController();
   final ApiService _apiService = ApiService();
 
-  String _inviteCode = 'Loading...';
+  String _inviteCode = '';
+  bool _isLoadingCode = true;
 
   @override
   void initState() {
@@ -38,11 +40,15 @@ class _InviteMembersScreenState extends State<InviteMembersScreen> {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         setState(() {
-          _inviteCode = data['invite_code'] ?? 'N/A';
+          _inviteCode = data['invite_code'] ?? '';
+          _isLoadingCode = false;
         });
       }
     } catch (e) {
       debugPrint('Error fetching society details: $e');
+      if (mounted) {
+        setState(() => _isLoadingCode = false);
+      }
     }
   }
 
@@ -75,11 +81,46 @@ class _InviteMembersScreenState extends State<InviteMembersScreen> {
                 children: [
                   const Text('Master Society QR', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.primaryDark)),
                   const SizedBox(height: 16),
-                  const Icon(Icons.qr_code_2, size: 100, color: AppTheme.primaryDark),
+                  // Real scannable QR code
+                  if (_isLoadingCode)
+                    const SizedBox(
+                      height: 200,
+                      child: Center(child: CircularProgressIndicator()),
+                    )
+                  else if (_inviteCode.isNotEmpty)
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: QrImageView(
+                        data: 'RESIFLOW:INVITE:$_inviteCode',
+                        version: QrVersions.auto,
+                        size: 200,
+                        backgroundColor: Colors.white,
+                        eyeStyle: const QrEyeStyle(
+                          eyeShape: QrEyeShape.square,
+                          color: AppTheme.primaryDark,
+                        ),
+                        dataModuleStyle: const QrDataModuleStyle(
+                          dataModuleShape: QrDataModuleShape.square,
+                          color: AppTheme.primaryDark,
+                        ),
+                      ),
+                    )
+                  else
+                    const SizedBox(
+                      height: 200,
+                      child: Center(child: Text('Could not load QR code', style: TextStyle(color: Colors.red))),
+                    ),
                   const SizedBox(height: 16),
-                  Text('Society Code: $_inviteCode', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, letterSpacing: 2)),
+                  Text(
+                    'Society Code: $_inviteCode',
+                    style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, letterSpacing: 2),
+                  ),
                   const SizedBox(height: 8),
-                  Text('Share this globally in your society.', textAlign: TextAlign.center),
+                  const Text('Residents can scan this QR or enter the code to join.', textAlign: TextAlign.center),
                 ],
               ),
             ),
@@ -106,3 +147,4 @@ class _InviteMembersScreenState extends State<InviteMembersScreen> {
     );
   }
 }
+

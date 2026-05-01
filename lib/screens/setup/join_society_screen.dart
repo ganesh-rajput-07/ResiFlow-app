@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/constants/api_constants.dart';
 import '../../services/api_service.dart';
@@ -24,6 +25,36 @@ class _JoinSocietyScreenState extends State<JoinSocietyScreen> {
   final ApiService _apiService = ApiService();
 
   bool _isLoading = false;
+
+  /// Opens the QR scanner and extracts the invite code from the scanned data.
+  Future<void> _scanQRCode() async {
+    try {
+      final scannedCode = await Navigator.of(context).push<String>(
+        MaterialPageRoute(builder: (_) => const _InviteQRScannerScreen()),
+      );
+
+      if (scannedCode != null && scannedCode.isNotEmpty && mounted) {
+        setState(() {
+          _codeController.text = scannedCode;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Invite code scanned: $scannedCode'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Could not open scanner: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
 
   Future<void> _submitJoinRequest() async {
     if (!_formKey.currentState!.validate()) return;
@@ -120,9 +151,7 @@ class _JoinSocietyScreenState extends State<JoinSocietyScreen> {
                       child: ElevatedButton.icon(
                         icon: const Icon(Icons.qr_code_scanner),
                         label: const Text('Scan QR Code'),
-                        onPressed: () {
-                          // Future: QR scanner to auto-fill invite code
-                        },
+                        onPressed: _scanQRCode,
                         style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primaryDark),
                       ),
                     ),
@@ -188,3 +217,129 @@ class _JoinSocietyScreenState extends State<JoinSocietyScreen> {
     );
   }
 }
+
+
+/// Dedicated QR scanner screen for scanning society invite QR codes.
+/// Returns the extracted invite code string via Navigator.pop().
+class _InviteQRScannerScreen extends StatefulWidget {
+  const _InviteQRScannerScreen();
+
+  @override
+  State<_InviteQRScannerScreen> createState() => _InviteQRScannerScreenState();
+}
+
+class _InviteQRScannerScreenState extends State<_InviteQRScannerScreen> {
+  final MobileScannerController _controller = MobileScannerController();
+  bool _hasScanned = false;
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _onDetect(BarcodeCapture capture) {
+    if (_hasScanned) return;
+
+    for (final barcode in capture.barcodes) {
+      final rawValue = barcode.rawValue;
+      if (rawValue == null || rawValue.isEmpty) continue;
+
+      _hasScanned = true;
+      _controller.stop();
+
+      // Extract invite code from various QR formats:
+      // 1. "RESIFLOW:INVITE:ABC123DEF4" → "ABC123DEF4"
+      // 2. Plain invite code → "ABC123DEF4"
+      String inviteCode = rawValue.trim();
+      if (inviteCode.startsWith('RESIFLOW:INVITE:')) {
+        inviteCode = inviteCode.replaceFirst('RESIFLOW:INVITE:', '');
+      }
+
+      Navigator.pop(context, inviteCode);
+      break;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Scan Society QR')),
+      body: Stack(
+        children: [
+          MobileScanner(
+            controller: _controller,
+            onDetect: _onDetect,
+          ),
+          // Overlay
+          Positioned.fill(
+            child: CustomPaint(
+              painter: _ScanOverlayPainter(),
+            ),
+          ),
+          Positioned(
+            bottom: 40,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                decoration: BoxDecoration(
+                  color: Colors.black87,
+                  borderRadius: BorderRadius.circular(30),
+                ),
+                child: const Text(
+                  'Point camera at society QR code',
+                  style: TextStyle(color: Colors.white, fontSize: 14),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ScanOverlayPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.black54
+      ..style = PaintingStyle.fill;
+
+    final scanAreaSize = 250.0;
+    final scanArea = Rect.fromCenter(
+      center: Offset(size.width / 2, size.height / 2),
+      width: scanAreaSize,
+      height: scanAreaSize,
+    );
+
+    final path = Path()
+      ..addRect(Rect.fromLTWH(0, 0, size.width, size.height))
+      ..addRRect(RRect.fromRectAndRadius(scanArea, const Radius.circular(16)))
+      ..fillType = PathFillType.evenOdd;
+
+    canvas.drawPath(path, paint);
+
+    final borderPaint = Paint()
+      ..color = AppTheme.primaryColor
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 4.0;
+
+    final cornerLength = 30.0;
+
+    canvas.drawLine(scanArea.topLeft, scanArea.topLeft + Offset(cornerLength, 0), borderPaint);
+    canvas.drawLine(scanArea.topLeft, scanArea.topLeft + Offset(0, cornerLength), borderPaint);
+    canvas.drawLine(scanArea.topRight, scanArea.topRight + Offset(-cornerLength, 0), borderPaint);
+    canvas.drawLine(scanArea.topRight, scanArea.topRight + Offset(0, cornerLength), borderPaint);
+    canvas.drawLine(scanArea.bottomLeft, scanArea.bottomLeft + Offset(cornerLength, 0), borderPaint);
+    canvas.drawLine(scanArea.bottomLeft, scanArea.bottomLeft + Offset(0, -cornerLength), borderPaint);
+    canvas.drawLine(scanArea.bottomRight, scanArea.bottomRight + Offset(-cornerLength, 0), borderPaint);
+    canvas.drawLine(scanArea.bottomRight, scanArea.bottomRight + Offset(0, -cornerLength), borderPaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+

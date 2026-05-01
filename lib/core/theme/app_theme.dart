@@ -16,8 +16,8 @@ class AppTheme {
       colorScheme: ColorScheme.light(
         primary: primaryColor,
         secondary: primaryLight,
-        background: backgroundColor,
-        surface: cardColor,
+        surface: backgroundColor,
+        surfaceContainer: cardColor,
         onPrimary: Colors.white,
         onSurface: textDark,
       ),
@@ -63,7 +63,7 @@ class AppTheme {
           borderSide: const BorderSide(color: primaryColor, width: 2),
         ),
       ),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: cardColor,
         elevation: 2,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
