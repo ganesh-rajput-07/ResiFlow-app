@@ -36,9 +36,14 @@ class _ManageResidentsScreenState extends State<ManageResidentsScreen> {
 
       if (mounted) {
         setState(() {
-          _residents = jsonDecode(futures[0].body);
-          _units = jsonDecode(futures[1].body);
-          _parkingLots = jsonDecode(futures[2].body);
+          final resData = jsonDecode(futures[0].body);
+          _residents = resData is List ? List.from(resData) : List.from(resData['results'] ?? []);
+          
+          final unitsData = jsonDecode(futures[1].body);
+          _units = unitsData is List ? List.from(unitsData) : List.from(unitsData['results'] ?? []);
+          
+          final parkingData = jsonDecode(futures[2].body);
+          _parkingLots = parkingData is List ? List.from(parkingData) : List.from(parkingData['results'] ?? []);
         });
       }
     } catch (e) {

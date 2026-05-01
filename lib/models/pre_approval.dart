@@ -9,6 +9,7 @@ class PreApproval {
   final String validTo;
   final String status;
   final String? requestedByName;
+  final String? passId;
 
   PreApproval({
     this.id,
@@ -21,6 +22,7 @@ class PreApproval {
     required this.validTo,
     this.status = 'pending',
     this.requestedByName,
+    this.passId,
   });
 
   factory PreApproval.fromJson(Map<String, dynamic> json) {
@@ -35,6 +37,7 @@ class PreApproval {
       validTo: json['valid_to'],
       status: json['status'] ?? 'pending',
       requestedByName: json['requested_by_name'],
+      passId: json['pass_id'],
     );
   }
 

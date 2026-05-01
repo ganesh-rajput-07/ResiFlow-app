@@ -1,9 +1,13 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/constants/api_constants.dart';
 import '../../services/api_service.dart';
+import '../../models/pre_approval.dart';
+import '../../providers/auth_provider.dart';
+import '../../utils/pdf_generator.dart';
 import '../../models/pre_approval.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
@@ -31,7 +35,8 @@ class _PreApprovalScreenState extends State<PreApprovalScreen> {
     try {
       final response = await _apiService.get(ApiConstants.preApprovals);
       if (response.statusCode == 200) {
-        final List<dynamic> data = jsonDecode(response.body);
+        final decoded = jsonDecode(response.body);
+        final List<dynamic> data = decoded is List ? List.from(decoded) : List.from(decoded['results'] ?? []);
         setState(() {
           _approvals = data.map((json) => PreApproval.fromJson(json)).toList();
         });
@@ -115,6 +120,34 @@ class _PreApprovalScreenState extends State<PreApprovalScreen> {
                                   onPressed: () => _deleteRequest(approval.id!),
                                   icon: const Icon(Icons.delete, color: Colors.red, size: 18),
                                   label: const Text('Delete', style: TextStyle(color: Colors.red)),
+                                ),
+                              ),
+                            ] else if (approval.status == 'approved' && approval.passId != null) ...[
+                              const SizedBox(height: 12),
+                              Align(
+                                alignment: Alignment.centerRight,
+                                child: ElevatedButton.icon(
+                                  onPressed: () async {
+                                    try {
+                                      final provider = Provider.of<AuthProvider>(context, listen: false);
+                                      await PdfGenerator.generateAndShareGatePass(
+                                        visitorName: approval.visitorName,
+                                        validFrom: approval.validFrom,
+                                        validTo: approval.validTo,
+                                        purpose: approval.purpose ?? 'Visitor',
+                                        passId: approval.passId!,
+                                        societyName: provider.user?['society_name'] ?? 'ResiFlow Society',
+                                      );
+                                    } catch (e) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(content: Text('Error generating PDF: $e')),
+                                      );
+                                      debugPrint('PDF Error: $e');
+                                    }
+                                  },
+                                  icon: const Icon(Icons.picture_as_pdf, size: 18),
+                                  label: const Text('View & Share Pass'),
+                                  style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primaryColor),
                                 ),
                               ),
                             ]

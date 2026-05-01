@@ -29,7 +29,8 @@ class _ApprovalManagementScreenState extends State<ApprovalManagementScreen> {
     try {
       final response = await _apiService.get(ApiConstants.preApprovals);
       if (response.statusCode == 200) {
-        final List<dynamic> data = jsonDecode(response.body);
+        final decoded = jsonDecode(response.body);
+        final List<dynamic> data = decoded is List ? List.from(decoded) : List.from(decoded['results'] ?? []);
         setState(() {
           _approvals = data.map((json) => PreApproval.fromJson(json)).toList();
         });

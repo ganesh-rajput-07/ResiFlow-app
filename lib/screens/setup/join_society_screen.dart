@@ -286,11 +286,23 @@ class _JoinSocietyScreenState extends State<JoinSocietyScreen> {
                   ],
                 ),
                 const SizedBox(height: 16),
-                CustomTextField(
-                  controller: _parkingController,
-                  label: 'Parking Slot Number',
-                  hint: 'e.g. P-12, Basement B1',
-                  prefixIcon: Icons.local_parking,
+                DropdownButtonFormField<String?>(
+                  value: _parkingController.text.isEmpty ? null : _parkingController.text,
+                  decoration: const InputDecoration(
+                    labelText: 'Parking Slot Number',
+                    prefixIcon: Icon(Icons.local_parking),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12)))
+                  ),
+                  items: [
+                    const DropdownMenuItem(value: null, child: Text('None')),
+                    if (_selectedUnit != null && _selectedUnit['parking_lots'] != null)
+                      ...(_selectedUnit['parking_lots'] as List).map((p) => DropdownMenuItem(value: p.toString(), child: Text(p.toString()))),
+                  ],
+                  onChanged: (val) {
+                    setState(() {
+                      _parkingController.text = val ?? '';
+                    });
+                  },
                 ),
                 const SizedBox(height: 16),
                 CustomTextField(

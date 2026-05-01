@@ -32,7 +32,7 @@ class _ParkingLotsScreenState extends State<ParkingLotsScreen> {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         setState(() {
-          _units = data is List ? data : (data['results'] ?? []);
+          _units = data is List ? List.from(data) : List.from(data['results'] ?? []);
         });
       }
     } catch (e) {
@@ -47,7 +47,7 @@ class _ParkingLotsScreenState extends State<ParkingLotsScreen> {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         setState(() {
-          _parkingLots = data is List ? data : (data['results'] ?? []);
+          _parkingLots = data is List ? List.from(data) : List.from(data['results'] ?? []);
         });
       }
     } catch (e) {

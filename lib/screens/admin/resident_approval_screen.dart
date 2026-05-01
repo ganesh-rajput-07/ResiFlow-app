@@ -28,7 +28,7 @@ class _ResidentApprovalScreenState extends State<ResidentApprovalScreen> {
       final response = await _apiService.get(ApiConstants.joinRequests);
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        setState(() => _requests = data is List ? data : (data['results'] ?? []));
+        setState(() => _requests = data is List ? List.from(data) : List.from(data['results'] ?? []));
       }
     } catch (e) {
       debugPrint('Error fetching join requests: $e');
