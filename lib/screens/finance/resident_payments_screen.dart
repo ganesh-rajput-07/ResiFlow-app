@@ -41,7 +41,7 @@ class _ResidentPaymentsScreenState extends State<ResidentPaymentsScreen> with Si
         final data = jsonDecode(response.body);
         final bills = data is List ? data : (data['results'] ?? []);
         setState(() {
-          _currentBills = bills.where((b) => b['status'] != 'paid').toList();
+          _currentBills = bills.where((b) => b['status'] == 'pending' || b['status'] == 'verification').toList();
           _historyBills = bills.where((b) => b['status'] == 'paid').toList();
         });
       }
@@ -86,6 +86,9 @@ class _ResidentPaymentsScreenState extends State<ResidentPaymentsScreen> with Si
               _InvoiceRow(label: 'Title', value: bill['title'] ?? 'Maintenance'),
               _InvoiceRow(label: 'Unit', value: bill['unit_number'] ?? 'Unit ${bill['unit']}'),
               _InvoiceRow(label: 'Due Date', value: bill['due_date'] ?? 'N/A'),
+              _InvoiceRow(label: 'Base Amount', value: '₹${bill['amount']}'),
+              if (bill['calculated_penalty'] != null && double.tryParse(bill['calculated_penalty'].toString()) != null && double.parse(bill['calculated_penalty'].toString()) > 0)
+                _InvoiceRow(label: 'Late Penalty', value: '+₹${bill['calculated_penalty']}'),
               _InvoiceRow(label: 'Status', value: (bill['status'] ?? 'pending').toUpperCase()),
               const Divider(height: 24),
 
@@ -94,7 +97,7 @@ class _ResidentPaymentsScreenState extends State<ResidentPaymentsScreen> with Si
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const Text('Total Amount', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                  Text('₹${bill['amount']}', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppTheme.primaryColor)),
+                  Text('₹${bill['total_amount'] ?? bill['amount']}', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppTheme.primaryColor)),
                 ],
               ),
               const SizedBox(height: 8),
@@ -132,7 +135,9 @@ class _ResidentPaymentsScreenState extends State<ResidentPaymentsScreen> with Si
 INVOICE #INV-${bill['id'].toString().padLeft(5, '0')}
 ${bill['title'] ?? 'Maintenance'}
 Unit: ${bill['unit_number'] ?? bill['unit']}
-Amount: ₹${bill['amount']}
+Base Amount: ₹${bill['amount']}
+Late Penalty: ₹${bill['calculated_penalty'] ?? 0}
+Total Amount: ₹${bill['total_amount'] ?? bill['amount']}
 Due: ${bill['due_date']}
 Status: ${(bill['status'] ?? 'pending').toUpperCase()}
 ''';
@@ -166,7 +171,9 @@ Status: ${(bill['status'] ?? 'pending').toUpperCase()}
             children: [
               const Text('Pay Maintenance', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
               const SizedBox(height: 8),
-              Text('₹${bill['amount']}', style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: AppTheme.primaryColor)),
+              Text('₹${bill['total_amount'] ?? bill['amount']}', style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: AppTheme.primaryColor)),
+              if (bill['calculated_penalty'] != null && double.tryParse(bill['calculated_penalty'].toString()) != null && double.parse(bill['calculated_penalty'].toString()) > 0)
+                Text('Includes ₹${bill['calculated_penalty']} Late Penalty', style: const TextStyle(color: Colors.red, fontSize: 13, fontWeight: FontWeight.w600)),
               const SizedBox(height: 24),
 
               // UPI Payment
@@ -198,11 +205,11 @@ Status: ${(bill['status'] ?? 'pending').toUpperCase()}
                 title: const Text('Bank Transfer', style: TextStyle(fontWeight: FontWeight.bold)),
                 subtitle: const Text('NEFT / IMPS / RTGS'),
                 trailing: const Icon(Icons.chevron_right),
-                onTap: () {
+                onTap: () async {
                   Navigator.pop(ctx);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Bank details copied to clipboard')),
-                  );
+                  await _apiService.post('${ApiConstants.bills}${bill['id']}/mark-verification/', {'method': 'bank_transfer'});
+                  _fetchBills();
+                  if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Verification request sent to admin!')));
                 },
               ),
               const Divider(),
@@ -215,9 +222,14 @@ Status: ${(bill['status'] ?? 'pending').toUpperCase()}
                   child: const Icon(Icons.money, color: Colors.green),
                 ),
                 title: const Text('Pay in Cash', style: TextStyle(fontWeight: FontWeight.bold)),
-                subtitle: const Text('Contact admin for cash payment'),
+                subtitle: const Text('Contact admin and request approval'),
                 trailing: const Icon(Icons.chevron_right),
-                onTap: () => Navigator.pop(ctx),
+                onTap: () async {
+                  Navigator.pop(ctx);
+                  await _apiService.post('${ApiConstants.bills}${bill['id']}/mark-verification/', {'method': 'cash'});
+                  _fetchBills();
+                  if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Verification request sent to admin!')));
+                },
               ),
               const SizedBox(height: 16),
             ],
@@ -292,15 +304,21 @@ Status: ${(bill['status'] ?? 'pending').toUpperCase()}
                     border: Border.all(color: isPaid ? Colors.green : Colors.red),
                   ),
                   child: Text(
-                    isPaid ? 'PAID' : 'PENDING',
-                    style: TextStyle(color: isPaid ? Colors.green : Colors.red, fontSize: 11, fontWeight: FontWeight.bold),
+                    isPaid ? 'PAID' : (bill['status'] == 'verification' ? 'VERIFYING' : 'PENDING'),
+                    style: TextStyle(
+                      color: isPaid ? Colors.green : (bill['status'] == 'verification' ? Colors.orange : Colors.red), 
+                      fontSize: 11, fontWeight: FontWeight.bold
+                    ),
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 12),
             // Amount
-            Text('₹${bill['amount']}', style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: AppTheme.primaryColor)),
+            Text('₹${bill['total_amount'] ?? bill['amount']}', style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: AppTheme.primaryColor)),
+            const SizedBox(height: 4),
+            if (bill['calculated_penalty'] != null && double.tryParse(bill['calculated_penalty'].toString()) != null && double.parse(bill['calculated_penalty'].toString()) > 0)
+              Text('+ ₹${bill['calculated_penalty']} Late Penalty', style: const TextStyle(color: Colors.red, fontSize: 13, fontWeight: FontWeight.w600)),
             const SizedBox(height: 8),
             Text('Due: $dueDate', style: const TextStyle(color: Colors.grey, fontSize: 13)),
             const SizedBox(height: 16),
@@ -314,7 +332,7 @@ Status: ${(bill['status'] ?? 'pending').toUpperCase()}
                     label: const Text('Invoice'),
                   ),
                 ),
-                if (!isPaid && isCurrent) ...[
+                if (!isPaid && isCurrent && bill['status'] != 'verification') ...[
                   const SizedBox(width: 12),
                   Expanded(
                     child: ElevatedButton.icon(
@@ -322,6 +340,17 @@ Status: ${(bill['status'] ?? 'pending').toUpperCase()}
                       icon: const Icon(Icons.payment, size: 18),
                       label: const Text('Pay Now'),
                       style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                    ),
+                  ),
+                ],
+                if (bill['status'] == 'verification') ...[
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: null,
+                      icon: const Icon(Icons.hourglass_top, size: 18),
+                      label: const Text('Pending Approval'),
+                      style: ElevatedButton.styleFrom(disabledBackgroundColor: Colors.orange.withOpacity(0.5)),
                     ),
                   ),
                 ],

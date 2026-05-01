@@ -21,6 +21,12 @@ class _PaymentSettingsScreenState extends State<PaymentSettingsScreen> {
   final _bankAccountController = TextEditingController();
   final _ifscController = TextEditingController();
   final _upiController = TextEditingController();
+  final _penaltyAmountController = TextEditingController();
+  final _dueDateController = TextEditingController();
+  
+  String _penaltyType = 'fixed';
+  String _penaltyInterval = 'one_time';
+  bool _applyMaintenanceNow = false;
 
   bool _cashEnabled = true;
   bool _onlineEnabled = false;
@@ -49,10 +55,13 @@ class _PaymentSettingsScreenState extends State<PaymentSettingsScreen> {
           _bankAccountController.text = s['bank_account_number'] ?? '';
           _ifscController.text = s['bank_ifsc'] ?? '';
           _upiController.text = s['upi_id'] ?? '';
+          _penaltyAmountController.text = (s['penalty_amount'] ?? '0').toString();
+          _dueDateController.text = (s['due_date_day'] ?? '15').toString();
+          _penaltyType = s['penalty_type'] ?? 'fixed';
+          _penaltyInterval = s['penalty_interval'] ?? 'one_time';
           _cashEnabled = s['cash'] ?? true;
           _onlineEnabled = s['upload_receipt'] ?? false;
-          // UPI is tracked via the upi field we check
-          _upiEnabled = (s['easebuzz'] ?? false); // repurpose for UPI toggle
+          _upiEnabled = (s['easebuzz'] ?? false);
         }
       }
     } catch (e) {
@@ -70,10 +79,21 @@ class _PaymentSettingsScreenState extends State<PaymentSettingsScreen> {
         'bank_account_number': _bankAccountController.text,
         'bank_ifsc': _ifscController.text,
         'upi_id': _upiController.text,
+        'penalty_amount': _penaltyAmountController.text.isEmpty ? '0' : _penaltyAmountController.text,
+        'penalty_type': _penaltyType,
+        'penalty_interval': _penaltyInterval,
+        'due_date_day': _dueDateController.text.isEmpty ? '15' : _dueDateController.text,
         'cash': _cashEnabled,
         'upload_receipt': _onlineEnabled,
         'easebuzz': _upiEnabled,
       };
+
+      if (_applyMaintenanceNow) {
+        await _apiService.post('${ApiConstants.bills}update-maintenance/', {
+          'new_amount': _amountController.text,
+          'apply_now': true,
+        });
+      }
 
       final response = _settingsId != null
           ? await _apiService.put('${ApiConstants.paymentSettings}$_settingsId/', body)
@@ -118,6 +138,64 @@ class _PaymentSettingsScreenState extends State<PaymentSettingsScreen> {
                     label: 'Monthly Amount (₹)',
                     hint: '1500',
                     prefixIcon: Icons.currency_rupee,
+                    keyboardType: TextInputType.number,
+                  ),
+                  SwitchListTile(
+                    title: const Text('Apply increase to current month?', style: TextStyle(fontSize: 14)),
+                    subtitle: const Text('Generates difference bills for paid users'),
+                    value: _applyMaintenanceNow,
+                    activeColor: AppTheme.primaryColor,
+                    contentPadding: EdgeInsets.zero,
+                    onChanged: (v) => setState(() => _applyMaintenanceNow = v),
+                  ),
+                  const SizedBox(height: 24),
+                  const Text('Generation Rules', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.primaryDark)),
+                  const SizedBox(height: 16),
+                  CustomTextField(
+                    controller: _dueDateController,
+                    label: 'Due Date (Day of the Month)',
+                    hint: '15',
+                    prefixIcon: Icons.calendar_today,
+                    keyboardType: TextInputType.number,
+                  ),
+                  const SizedBox(height: 24),
+                  const Text('Late Penalty Rules', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.primaryDark)),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: DropdownButtonFormField<String>(
+                          value: _penaltyType,
+                          decoration: const InputDecoration(labelText: 'Penalty Type', border: OutlineInputBorder()),
+                          items: const [
+                            DropdownMenuItem(value: 'fixed', child: Text('Fixed Amount')),
+                            DropdownMenuItem(value: 'percentage', child: Text('Percentage (%)')),
+                          ],
+                          onChanged: (v) => setState(() => _penaltyType = v ?? 'fixed'),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: DropdownButtonFormField<String>(
+                          value: _penaltyInterval,
+                          decoration: const InputDecoration(labelText: 'Interval', border: OutlineInputBorder()),
+                          items: const [
+                            DropdownMenuItem(value: 'one_time', child: Text('One Time')),
+                            DropdownMenuItem(value: 'per_day', child: Text('Per Day')),
+                            DropdownMenuItem(value: 'per_week', child: Text('Per Week')),
+                            DropdownMenuItem(value: 'per_month', child: Text('Per Month')),
+                          ],
+                          onChanged: (v) => setState(() => _penaltyInterval = v ?? 'one_time'),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  CustomTextField(
+                    controller: _penaltyAmountController,
+                    label: _penaltyType == 'fixed' ? 'Penalty Amount (₹)' : 'Penalty Percentage (%)',
+                    hint: '100',
+                    prefixIcon: _penaltyType == 'fixed' ? Icons.currency_rupee : Icons.percent,
                     keyboardType: TextInputType.number,
                   ),
                   const SizedBox(height: 24),

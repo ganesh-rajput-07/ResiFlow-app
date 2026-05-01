@@ -16,12 +16,28 @@ class ParkingLotsScreen extends StatefulWidget {
 class _ParkingLotsScreenState extends State<ParkingLotsScreen> {
   final ApiService _apiService = ApiService();
   List<dynamic> _parkingLots = [];
+  List<dynamic> _units = [];
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
     _fetchParkingLots();
+    _fetchUnits();
+  }
+
+  Future<void> _fetchUnits() async {
+    try {
+      final response = await _apiService.get(ApiConstants.unitsList);
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        setState(() {
+          _units = data is List ? data : (data['results'] ?? []);
+        });
+      }
+    } catch (e) {
+      debugPrint('Error fetching units: $e');
+    }
   }
 
   Future<void> _fetchParkingLots() async {
@@ -119,10 +135,8 @@ class _ParkingLotsScreenState extends State<ParkingLotsScreen> {
     final priceController = TextEditingController(text: isEditing ? (lot['price_per_month']?.toString() ?? '') : '');
     String status = isEditing ? lot['status'] : 'self_use';
     final user = context.read<AuthProvider>().user;
-    
-    // For admins adding new lots to society
-    // We assume the user creates it for their own unit if not an admin creating it for someone else.
-    // For simplicity, we just use the user's unit.
+    final isAdminOrComm = user?['role'] == 'admin' || user?['role'] == 'committee';
+    int? selectedUnitId = isEditing ? lot['unit'] : user?['unit'];
 
     await showDialog(
       context: context,
@@ -133,10 +147,24 @@ class _ParkingLotsScreenState extends State<ParkingLotsScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
+                if (!isEditing && isAdminOrComm) ...[
+                  DropdownButtonFormField<int>(
+                    value: selectedUnitId,
+                    decoration: const InputDecoration(labelText: 'Assign to Unit'),
+                    items: _units.map((u) => DropdownMenuItem<int>(
+                      value: u['id'],
+                      child: Text('Unit ${u['number']}'),
+                    )).toList(),
+                    onChanged: (val) {
+                      setStateSB(() => selectedUnitId = val);
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                ],
                 TextField(
                   controller: lotNumberController,
                   decoration: const InputDecoration(labelText: 'Lot Number', hintText: 'P-101'),
-                  enabled: !isEditing || user?['role'] == 'admin' || user?['role'] == 'committee',
+                  enabled: !isEditing || isAdminOrComm,
                 ),
                 const SizedBox(height: 16),
                 DropdownButtonFormField<String>(
@@ -172,7 +200,7 @@ class _ParkingLotsScreenState extends State<ParkingLotsScreen> {
                   'lot_number': lotNumberController.text,
                   'status': status,
                   'price_per_month': priceController.text.isNotEmpty ? priceController.text : null,
-                  'unit': user?['unit'], 
+                  'unit': selectedUnitId, 
                 };
 
                 // If editing, use PUT/PATCH (we use PATCH here)
@@ -219,11 +247,11 @@ class _ParkingLotsScreenState extends State<ParkingLotsScreen> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: isAdminOrComm ? FloatingActionButton.extended(
         onPressed: () => _showAddOrEditDialog(),
         icon: const Icon(Icons.add),
-        label: const Text('Add My Lot'),
-      ),
+        label: const Text('Add Parking Lot'),
+      ) : null,
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _parkingLots.isEmpty

@@ -4,6 +4,7 @@ import 'payment_settings_screen.dart';
 import 'monthly_tracker_screen.dart';
 import 'generate_bills_screen.dart';
 import 'penalties_screen.dart';
+import 'payment_verification_screen.dart';
 
 class MaintenanceFinanceScreen extends StatelessWidget {
   const MaintenanceFinanceScreen({super.key});
@@ -38,6 +39,14 @@ class MaintenanceFinanceScreen extends StatelessWidget {
               subtitle: 'View paid/pending status & export to Excel',
               color: Colors.deepOrange,
               onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MonthlyTrackerScreen())),
+            ),
+            const SizedBox(height: 16),
+            _FinanceCard(
+              icon: Icons.fact_check,
+              title: 'Pending Verifications',
+              subtitle: 'Approve offline cash and bank transfer payments',
+              color: Colors.amber.shade700,
+              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PaymentVerificationScreen())),
             ),
             const SizedBox(height: 16),
             _FinanceCard(
