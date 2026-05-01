@@ -52,6 +52,33 @@ class ApiService {
     return await http.delete(Uri.parse(url), headers: headers);
   }
 
+  Future<http.Response> multipartRequest(
+    String url,
+    String method,
+    Map<String, String> fields,
+    {String? fileField, String? filePath, List<int>? fileBytes, String? fileName}
+  ) async {
+    final token = await _storage.read(key: 'access_token');
+    final request = http.MultipartRequest(method, Uri.parse(url));
+    
+    if (token != null) {
+      request.headers['Authorization'] = 'Bearer $token';
+    }
+    
+    request.fields.addAll(fields);
+    
+    if (fileField != null) {
+      if (filePath != null) {
+        request.files.add(await http.MultipartFile.fromPath(fileField, filePath));
+      } else if (fileBytes != null && fileName != null) {
+        request.files.add(http.MultipartFile.fromBytes(fileField, fileBytes, filename: fileName));
+      }
+    }
+    
+    final streamedResponse = await request.send();
+    return await http.Response.fromStream(streamedResponse);
+  }
+
   // Token Management
   Future<void> saveTokens(String accessToken, String refreshToken) async {
     await _storage.write(key: 'access_token', value: accessToken);

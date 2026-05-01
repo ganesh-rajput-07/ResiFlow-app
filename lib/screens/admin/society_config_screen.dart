@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_theme.dart';
 import 'wing_management_screen.dart';
-import 'manage_gatekeepers_screen.dart';
-import '../finance/maintenance_finance_screen.dart';
+import 'society_info_screen.dart';
 
 class SocietyConfigScreen extends StatelessWidget {
   const SocietyConfigScreen({super.key});
@@ -21,22 +20,7 @@ class SocietyConfigScreen extends StatelessWidget {
               style: TextStyle(fontSize: 16, color: Colors.grey),
             ),
             const SizedBox(height: 24),
-            _ConfigCard(
-              icon: Icons.currency_rupee,
-              title: 'Maintenance & Finance',
-              subtitle: 'Bills, payments, UPI, penalties & monthly tracker',
-              color: Colors.green,
-              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MaintenanceFinanceScreen())),
-            ),
-            const SizedBox(height: 16),
-            _ConfigCard(
-              icon: Icons.security,
-              title: 'Manage Gatekeepers',
-              subtitle: 'Add, remove & manage society guards',
-              color: Colors.blue,
-              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ManageGatekeepersScreen())),
-            ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
             _ConfigCard(
               icon: Icons.apartment,
               title: 'Wings & Units',
@@ -50,11 +34,7 @@ class SocietyConfigScreen extends StatelessWidget {
               title: 'Society Info',
               subtitle: 'Building details, amenities & documents',
               color: Colors.purple,
-              onTap: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Coming soon!')),
-                );
-              },
+              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SocietyInfoScreen())),
             ),
           ],
         ),

@@ -1,6 +1,6 @@
 class ApiConstants {
-  // Update this to hit the production Vercel deployment
-  static const String baseUrl = 'https://resiflow-backend.vercel.app/api';
+  // Use localhost for local development since we added new backend models
+  static const String baseUrl = 'http://127.0.0.1:8000/api';
   
   // Auth
   static const String login = '$baseUrl/auth/login/';
@@ -12,6 +12,8 @@ class ApiConstants {
   static const String societies = '$baseUrl/society/societies/';
   static const String wingsList = '$baseUrl/society/wings/';
   static const String unitsList = '$baseUrl/society/units/';
+  static const String amenities = '$baseUrl/society/amenities/';
+  static const String documents = '$baseUrl/society/documents/';
   static String societyDetail(int id) => '$societies$id/';
   static String setupWing(int id) => '$societies$id/setup-wing/';
   static String joinSociety(int id) => '$societies$id/join/';
