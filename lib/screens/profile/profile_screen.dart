@@ -24,6 +24,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final _formKey = GlobalKey<FormState>();
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();
+  final _usernameController = TextEditingController();
   final _phoneController = TextEditingController();
   
   DateTime? _birthdate;
@@ -43,6 +44,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         final data = jsonDecode(response.body);
         _firstNameController.text = data['first_name'] ?? '';
         _lastNameController.text = data['last_name'] ?? '';
+        _usernameController.text = data['username'] ?? '';
         _phoneController.text = data['phone'] ?? '';
         if (data['birthdate'] != null) {
           _birthdate = DateTime.tryParse(data['birthdate']);
@@ -66,11 +68,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
     setState(() => _isSaving = true);
 
     try {
-      final response = await _apiService.put(
+      final response = await _apiService.patch(
         ApiConstants.profile,
         {
           'first_name': _firstNameController.text,
           'last_name': _lastNameController.text,
+          'username': _usernameController.text,
           'phone': _phoneController.text,
           'birthdate': _birthdate != null ? DateFormat('yyyy-MM-dd').format(_birthdate!) : null,
         },
@@ -281,6 +284,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   Expanded(child: CustomTextField(controller: _lastNameController, label: 'Last Name', hint: 'Last Name')),
                 ],
               ),
+              const SizedBox(height: 16),
+              CustomTextField(controller: _usernameController, label: 'Username', hint: 'Username', prefixIcon: Icons.alternate_email, enabled: false),
               const SizedBox(height: 16),
               CustomTextField(controller: _phoneController, label: 'Phone Number', hint: 'Phone Number', prefixIcon: Icons.phone),
               const SizedBox(height: 16),
