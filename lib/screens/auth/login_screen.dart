@@ -61,10 +61,10 @@ class _LoginScreenState extends State<LoginScreen> {
                     color: AppTheme.primaryColor.withOpacity(0.1),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(
-                    Icons.business,
-                    size: 64,
-                    color: AppTheme.primaryColor,
+                  child: Image.asset(
+                    'assets/logo.png',
+                    height: 100,
+                    errorBuilder: (context, error, stackTrace) => const Icon(Icons.business, size: 64, color: AppTheme.primaryColor),
                   ),
                 ),
               ),

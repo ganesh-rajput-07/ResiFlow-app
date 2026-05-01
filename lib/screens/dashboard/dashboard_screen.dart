@@ -41,7 +41,17 @@ class DashboardScreen extends StatelessWidget {
     
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Dashboard'),
+        title: Row(
+          children: [
+            Image.asset(
+              'assets/logo.png', 
+              height: 32,
+              errorBuilder: (context, error, stackTrace) => const Icon(Icons.business, size: 24),
+            ),
+            const SizedBox(width: 12),
+            const Expanded(child: Text('Dashboard', overflow: TextOverflow.ellipsis)),
+          ],
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.person),

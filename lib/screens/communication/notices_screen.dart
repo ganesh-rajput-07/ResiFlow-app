@@ -58,11 +58,19 @@ class _NoticesScreenState extends State<NoticesScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Create Notice', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              const Text('Broadcast New Notice', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
               const SizedBox(height: 16),
               CustomTextField(controller: _titleController, label: 'Notice Title', hint: 'e.g. Water Cut Tomorrow'),
               const SizedBox(height: 12),
               CustomTextField(controller: _contentController, label: 'Details', hint: 'Provide notice contents...', maxLines: 4),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                   _MediaPickerButton(icon: Icons.image, label: 'Banner', color: Colors.indigo, onTap: () {}),
+                   const SizedBox(width: 12),
+                   _MediaPickerButton(icon: Icons.attach_file, label: 'PDF/Doc', color: Colors.orange, onTap: () {}),
+                ],
+              ),
               const SizedBox(height: 24),
               CustomButton(text: 'Publish Notice', onPressed: () async {
                 final success = await _apiService.post(ApiConstants.notices, {
@@ -93,7 +101,13 @@ class _NoticesScreenState extends State<NoticesScreen> {
     final isAdmin = user?['role'] == 'admin';
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Notice Board')),
+      backgroundColor: Colors.grey[50],
+      appBar: AppBar(
+        title: const Text('Official Notices'),
+        elevation: 0,
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
+      ),
       body: _isLoading 
         ? const Center(child: CircularProgressIndicator()) 
         : _notices.isEmpty 
@@ -103,37 +117,92 @@ class _NoticesScreenState extends State<NoticesScreen> {
               itemCount: _notices.length,
               itemBuilder: (context, index) {
                 final notice = _notices[index];
-                return Card(
-                  margin: const EdgeInsets.only(bottom: 16),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 20),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 4))],
+                    border: const Border(left: BorderSide(color: Colors.redAccent, width: 5)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Banner Image if exists
+                      if (notice['image'] != null)
+                        ClipRRect(
+                          borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                          child: Image.network(notice['image'], height: 150, width: double.infinity, fit: BoxFit.cover),
+                        ),
+                      Padding(
+                        padding: const EdgeInsets.all(20),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Flexible(
-                              child: Text(notice['title'] ?? 'Notice', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                            Row(
+                              children: [
+                                const Icon(Icons.campaign, color: Colors.redAccent, size: 20),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(notice['title'] ?? 'Notice', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black)),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            Text(notice['content'] ?? '', style: const TextStyle(fontSize: 15, height: 1.5, color: Colors.black87)),
+                            const SizedBox(height: 20),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(notice['created_at']?.substring(0, 10) ?? '', style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                                Text('By: ${notice['created_by_name'] ?? 'Admin'}', style: const TextStyle(color: AppTheme.primaryColor, fontSize: 12, fontWeight: FontWeight.bold)),
+                              ],
                             ),
                           ],
                         ),
-                        const SizedBox(height: 8),
-                        Text(notice['content'] ?? ''),
-                        const SizedBox(height: 12),
-                        Text('Published by: ${notice['created_by_name'] ?? 'Admin'}', style: const TextStyle(color: Colors.grey, fontSize: 12)),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 );
               },
             ),
       floatingActionButton: isAdmin ? FloatingActionButton.extended(
         onPressed: _showAddNoticeSheet,
-        backgroundColor: AppTheme.primaryColor,
-        icon: const Icon(Icons.campaign, color: Colors.white),
-        label: const Text('New Notice', style: TextStyle(color: Colors.white)),
+        backgroundColor: Colors.redAccent,
+        icon: const Icon(Icons.add, color: Colors.white),
+        label: const Text('Post Notice', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
       ) : null,
+    );
+  }
+}
+
+class _MediaPickerButton extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _MediaPickerButton({required this.icon, required this.label, required this.color, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.grey[300]!),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, size: 20, color: color),
+            const SizedBox(width: 8),
+            Text(label, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12)),
+          ],
+        ),
+      ),
     );
   }
 }
