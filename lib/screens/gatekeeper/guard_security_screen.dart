@@ -303,7 +303,7 @@ class _ManualVisitorFormState extends State<_ManualVisitorForm> {
             });
           }
         }
-        setState(() => _units = allUnits);
+        if (mounted) setState(() => _units = allUnits);
       }
     } catch (e) {
       debugPrint('Error fetching units: $e');
@@ -331,7 +331,9 @@ class _ManualVisitorFormState extends State<_ManualVisitorForm> {
                 border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
               ),
               items: _units.map((u) => DropdownMenuItem<int>(value: u['id'], child: Text(u['label']))).toList(),
-              onChanged: (val) => setState(() => _selectedUnitId = val),
+              onChanged: (val) {
+                if (mounted) setState(() => _selectedUnitId = val);
+              },
             ),
             const SizedBox(height: 12),
             CustomTextField(controller: _purposeController, label: 'Purpose', hint: 'Delivery, Guest, etc.'),

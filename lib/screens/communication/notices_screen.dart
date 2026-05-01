@@ -34,8 +34,9 @@ class _NoticesScreenState extends State<NoticesScreen> {
     try {
       final response = await _apiService.get(ApiConstants.notices);
       if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
         setState(() {
-          _notices = jsonDecode(response.body);
+          _notices = data is List ? data : (data['results'] ?? []);
         });
       }
     } catch (e) {

@@ -115,6 +115,8 @@ class DashboardScreen extends StatelessWidget {
                 items: [
                   _DashboardItem(icon: Icons.qr_code_scanner, title: 'Gate Pass Request',
                     onTap: () => _push(context, const PreApprovalScreen())),
+                  _DashboardItem(icon: Icons.history, title: 'Visitor Logs',
+                    onTap: () => _push(context, const VisitorLogsHistoryScreen())),
                   _DashboardItem(icon: Icons.local_parking, title: 'Parking Lots',
                     onTap: () => _push(context, const ParkingLotsScreen())),
                   _DashboardItem(icon: Icons.cleaning_services, title: 'Helpers',
