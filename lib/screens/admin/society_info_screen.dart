@@ -1,5 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../providers/auth_provider.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/constants/api_constants.dart';
 import '../../services/api_service.dart';
@@ -92,6 +94,9 @@ class _SocietyInfoScreenState extends State<SocietyInfoScreen> with SingleTicker
 
   @override
   Widget build(BuildContext context) {
+    final user = context.watch<AuthProvider>().user;
+    final role = user?['role'] ?? 'resident';
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Society Info'),
@@ -110,7 +115,7 @@ class _SocietyInfoScreenState extends State<SocietyInfoScreen> with SingleTicker
           _buildDocumentsTab(),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: (role == 'admin' || role == 'committee') ? FloatingActionButton.extended(
         onPressed: () async {
           if (_tabController.index == 0) {
             final result = await Navigator.push(context, MaterialPageRoute(builder: (_) => const AddAmenityScreen()));
@@ -126,7 +131,7 @@ class _SocietyInfoScreenState extends State<SocietyInfoScreen> with SingleTicker
           _tabController.index == 0 ? 'Add Amenity' : 'Add Document',
           style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
-      ),
+      ) : null,
     );
   }
 

@@ -19,6 +19,9 @@ import '../finance/resident_penalties_screen.dart';
 import '../directory/helpers_directory_screen.dart';
 import '../communication/community_forum_screen.dart';
 import '../communication/notices_screen.dart';
+import '../admin/society_info_screen.dart';
+import '../admin/manage_residents_screen.dart';
+import '../profile/profile_screen.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
@@ -32,6 +35,14 @@ class DashboardScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Dashboard'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.person),
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const ProfileScreen()),
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () {
@@ -69,6 +80,8 @@ class DashboardScreen extends StatelessWidget {
                 items: [
                   _DashboardItem(icon: Icons.settings, title: 'Society Config',
                     onTap: () => _push(context, const SocietyConfigScreen())),
+                  _DashboardItem(icon: Icons.people_alt, title: 'Manage Residents',
+                    onTap: () => _push(context, const ManageResidentsScreen())),
                   _DashboardItem(icon: Icons.person_add_alt_1, title: 'Invite Residents',
                     onTap: () => _push(context, const InviteMembersScreen())),
                   _DashboardItem(icon: Icons.how_to_reg, title: 'Approvals',
@@ -142,10 +155,12 @@ class DashboardScreen extends StatelessWidget {
               const SizedBox(height: 24),
             ],
 
-            // ─── COMMUNICATION (ALL ROLES) ───
+            // ─── SOCIETY & COMMUNICATION (ALL ROLES) ───
             _buildSection(
-              title: 'Communication',
+              title: 'Society & Community',
               items: [
+                _DashboardItem(icon: Icons.apartment, title: 'Society Info',
+                  onTap: () => _push(context, const SocietyInfoScreen())),
                 _DashboardItem(icon: Icons.campaign_outlined, title: 'Notices',
                   onTap: () => _push(context, const NoticesScreen())),
                 _DashboardItem(icon: Icons.forum_outlined, title: 'Community',

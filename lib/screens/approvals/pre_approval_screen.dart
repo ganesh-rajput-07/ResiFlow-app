@@ -16,11 +16,165 @@ class PreApprovalScreen extends StatefulWidget {
 }
 
 class _PreApprovalScreenState extends State<PreApprovalScreen> {
+  final ApiService _apiService = ApiService();
+  List<PreApproval> _approvals = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchApprovals();
+  }
+
+  Future<void> _fetchApprovals() async {
+    setState(() => _isLoading = true);
+    try {
+      final response = await _apiService.get(ApiConstants.preApprovals);
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        setState(() {
+          _approvals = data.map((json) => PreApproval.fromJson(json)).toList();
+        });
+      }
+    } catch (e) {
+      debugPrint('Error fetching approvals: $e');
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _deleteRequest(int id) async {
+    try {
+      final response = await _apiService.delete('${ApiConstants.preApprovals}$id/');
+      if (response.statusCode == 204) {
+        _fetchApprovals();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Request deleted successfully!')),
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('Error deleting request: $e');
+    }
+  }
+
+  void _showCreateBottomSheet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
+        child: const _CreatePreApprovalForm(),
+      ),
+    ).then((_) => _fetchApprovals());
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('My Gate Passes'),
+        actions: [
+          IconButton(icon: const Icon(Icons.refresh), onPressed: _fetchApprovals),
+        ],
+      ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : _approvals.isEmpty
+              ? const Center(child: Text('You have no gate pass requests.'))
+              : ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: _approvals.length,
+                  itemBuilder: (context, index) {
+                    final approval = _approvals[index];
+                    return Card(
+                      margin: const EdgeInsets.only(bottom: 16),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(child: Text(approval.visitorName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18))),
+                                _StatusBadge(status: approval.status),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            Text('Phone: ${approval.mobile}', style: const TextStyle(color: Colors.grey)),
+                            if (approval.purpose != null) Text('Purpose: ${approval.purpose}'),
+                            Text('Valid: ${approval.validFrom} to ${approval.validTo}'),
+                            if (approval.status == 'rejected') ...[
+                              const SizedBox(height: 12),
+                              Align(
+                                alignment: Alignment.centerRight,
+                                child: TextButton.icon(
+                                  onPressed: () => _deleteRequest(approval.id!),
+                                  icon: const Icon(Icons.delete, color: Colors.red, size: 18),
+                                  label: const Text('Delete', style: TextStyle(color: Colors.red)),
+                                ),
+                              ),
+                            ]
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _showCreateBottomSheet,
+        backgroundColor: AppTheme.primaryColor,
+        icon: const Icon(Icons.add, color: Colors.white),
+        label: const Text('New Pass', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+      ),
+    );
+  }
+}
+
+class _StatusBadge extends StatelessWidget {
+  final String status;
+  
+  const _StatusBadge({required this.status});
+
+  @override
+  Widget build(BuildContext context) {
+    Color color;
+    if (status == 'approved') color = Colors.green;
+    else if (status == 'rejected') color = Colors.red;
+    else color = Colors.orange;
+    
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color),
+      ),
+      child: Text(
+        status.toUpperCase(),
+        style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.bold),
+      ),
+    );
+  }
+}
+
+class _CreatePreApprovalForm extends StatefulWidget {
+  const _CreatePreApprovalForm();
+
+  @override
+  State<_CreatePreApprovalForm> createState() => _CreatePreApprovalFormState();
+}
+
+class _CreatePreApprovalFormState extends State<_CreatePreApprovalForm> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
-  final _purposeController = TextEditingController();
   final _personsController = TextEditingController(text: '1');
+  
+  String _purpose = 'personal';
   
   DateTime _validFrom = DateTime.now();
   DateTime _validTo = DateTime.now().add(const Duration(days: 1));
@@ -36,9 +190,7 @@ class _PreApprovalScreenState extends State<PreApprovalScreen> {
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(
-              primary: AppTheme.primaryColor,
-            ),
+            colorScheme: const ColorScheme.light(primary: AppTheme.primaryColor),
           ),
           child: child!,
         );
@@ -61,23 +213,19 @@ class _PreApprovalScreenState extends State<PreApprovalScreen> {
 
   Future<void> _submitRequest() async {
     if (!_formKey.currentState!.validate()) return;
-    
     setState(() => _isLoading = true);
 
     try {
       final req = PreApproval(
         visitorName: _nameController.text,
         mobile: _phoneController.text,
-        purpose: _purposeController.text,
+        purpose: _purpose,
         numberOfPersons: int.tryParse(_personsController.text) ?? 1,
         validFrom: DateFormat('yyyy-MM-dd').format(_validFrom),
         validTo: DateFormat('yyyy-MM-dd').format(_validTo),
       );
 
-      final response = await _apiService.post(
-        ApiConstants.preApprovals,
-        req.toJson(),
-      );
+      final response = await _apiService.post(ApiConstants.preApprovals, req.toJson());
 
       if (response.statusCode == 201) {
         if (mounted) {
@@ -87,105 +235,77 @@ class _PreApprovalScreenState extends State<PreApprovalScreen> {
           Navigator.of(context).pop();
         }
       } else {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Failed to submit. Please try again.')),
-          );
-        }
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Failed to submit. Please try again.')));
       }
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
-      }
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
     } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Request Pre-Approval'),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'New Pre-Approval',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 16),
-              CustomTextField(
-                controller: _nameController,
-                label: 'Visitor Name',
-                hint: 'Enter full name',
-                prefixIcon: Icons.person_outline,
-              ),
-              const SizedBox(height: 16),
-              CustomTextField(
-                controller: _phoneController,
-                label: 'Phone Number',
-                hint: '10-digit mobile number',
-                keyboardType: TextInputType.phone,
-                prefixIcon: Icons.phone_outlined,
-              ),
-              const SizedBox(height: 32),
-              const Text(
-                'Visit Details',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                   Expanded(
-                    child: _buildDateSelector('Valid From', _validFrom, () => _selectDate(context, true)),
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24.0),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text('New Pre-Approval', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(context)),
+              ],
+            ),
+            const SizedBox(height: 16),
+            CustomTextField(controller: _nameController, label: 'Visitor Name', hint: 'Enter full name', prefixIcon: Icons.person_outline),
+            const SizedBox(height: 16),
+            CustomTextField(
+              controller: _phoneController, label: 'Phone Number', hint: '10-digit mobile number',
+              keyboardType: TextInputType.phone, prefixIcon: Icons.phone_outlined,
+            ),
+            const SizedBox(height: 24),
+            const Text('Visit Details', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                 Expanded(child: _buildDateSelector('Valid From', _validFrom, () => _selectDate(context, true))),
+                const SizedBox(width: 16),
+                Expanded(child: _buildDateSelector('Valid To', _validTo, () => _selectDate(context, false))),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  flex: 2,
+                  child: DropdownButtonFormField<String>(
+                    value: _purpose,
+                    decoration: const InputDecoration(labelText: 'Purpose', border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12)))),
+                    items: const [
+                      DropdownMenuItem(value: 'personal', child: Text('Personal')),
+                      DropdownMenuItem(value: 'official', child: Text('Official')),
+                      DropdownMenuItem(value: 'delivery', child: Text('Delivery')),
+                      DropdownMenuItem(value: 'maintenance', child: Text('Maintenance')),
+                      DropdownMenuItem(value: 'other', child: Text('Other')),
+                    ],
+                    onChanged: (val) {
+                      if (val != null) setState(() => _purpose = val);
+                    },
                   ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: _buildDateSelector('Valid To', _validTo, () => _selectDate(context, false)),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    flex: 2,
-                    child: CustomTextField(
-                      controller: _purposeController,
-                      label: 'Purpose',
-                      hint: 'e.g. Guest, Delivery',
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    flex: 1,
-                    child: CustomTextField(
-                      controller: _personsController,
-                      label: 'Persons',
-                      hint: '1',
-                      keyboardType: TextInputType.number,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 48),
-              CustomButton(
-                text: 'Submit Request',
-                onPressed: _submitRequest,
-                isLoading: _isLoading,
-              ),
-            ],
-          ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(flex: 1, child: CustomTextField(controller: _personsController, label: 'Persons', hint: '1', keyboardType: TextInputType.number)),
+              ],
+            ),
+            const SizedBox(height: 32),
+            CustomButton(text: 'Submit Request', onPressed: _submitRequest, isLoading: _isLoading),
+            const SizedBox(height: 16),
+          ],
         ),
       ),
     );
@@ -195,26 +315,22 @@ class _PreApprovalScreenState extends State<PreApprovalScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-        ),
-        const SizedBox(height: 8),
+        Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+        const SizedBox(height: 4),
         InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(12),
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
             decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
+              color: Colors.white, borderRadius: BorderRadius.circular(12),
               border: Border.all(color: const Color(0xFFE0E0E0)),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(DateFormat('MMM dd, yyyy').format(date)),
-                const Icon(Icons.calendar_today, size: 18, color: Colors.grey),
+                Text(DateFormat('MMM dd').format(date), style: const TextStyle(fontSize: 13)),
+                const Icon(Icons.calendar_today, size: 16, color: Colors.grey),
               ],
             ),
           ),

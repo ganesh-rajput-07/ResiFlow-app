@@ -16,13 +16,14 @@ class InviteMembersScreen extends StatefulWidget {
   State<InviteMembersScreen> createState() => _InviteMembersScreenState();
 }
 class _InviteMembersScreenState extends State<InviteMembersScreen> {
-  final _wingController = TextEditingController();
-  final _flatController = TextEditingController();
   final _mobileController = TextEditingController();
   final ApiService _apiService = ApiService();
 
   String _inviteCode = '';
   bool _isLoadingCode = true;
+  List<dynamic> _wings = [];
+  dynamic _selectedWing;
+  dynamic _selectedUnit;
 
   @override
   void initState() {
@@ -41,6 +42,15 @@ class _InviteMembersScreenState extends State<InviteMembersScreen> {
         final data = jsonDecode(response.body);
         setState(() {
           _inviteCode = data['invite_code'] ?? '';
+          _wings = data['wings'] ?? [];
+          if (_wings.isNotEmpty) {
+            _selectedWing = _wings.first;
+            if ((_selectedWing['units'] as List).isNotEmpty) {
+              _selectedUnit = _selectedWing['units'].first;
+            } else {
+              _selectedUnit = null;
+            }
+          }
           _isLoadingCode = false;
         });
       }
@@ -52,13 +62,55 @@ class _InviteMembersScreenState extends State<InviteMembersScreen> {
     }
   }
 
-  void _sendInvite() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Invite sent to ${_mobileController.text} for Flat ${_wingController.text}-${_flatController.text}'))
-    );
-    _wingController.clear();
-    _flatController.clear();
-    _mobileController.clear();
+  void _sendInvite() async {
+    if (_selectedWing == null || _selectedUnit == null || _mobileController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please select a unit and enter mobile number.')));
+      return;
+    }
+
+    final provider = Provider.of<AuthProvider>(context, listen: false);
+    final societyId = provider.user?['society'];
+    if (societyId == null) return;
+
+    try {
+      final response = await _apiService.post(
+        ApiConstants.generateInvite(societyId),
+        {'unit_id': _selectedUnit['id']},
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final data = jsonDecode(response.body);
+        final uniqueCode = data['invite_code'];
+
+        if (mounted) {
+          showDialog(
+            context: context,
+            builder: (_) => AlertDialog(
+              title: const Text('Unique Invite Generated!'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text('This is a ONE-TIME use code tied specifically to this flat. Once the user joins, it becomes invalid.', textAlign: TextAlign.center, style: TextStyle(color: Colors.grey)),
+                  const SizedBox(height: 16),
+                  Text('RESIFLOW:INVITE:$uniqueCode', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.green)),
+                  const SizedBox(height: 16),
+                  const Text('Sending via SMS/WhatsApp to:', style: TextStyle(fontWeight: FontWeight.bold)),
+                  Text(_mobileController.text),
+                ],
+              ),
+              actions: [
+                TextButton(onPressed: () => Navigator.pop(context), child: const Text('OK')),
+              ],
+            ),
+          );
+        }
+        _mobileController.clear();
+      } else {
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Failed to generate unique invite code'), backgroundColor: Colors.red));
+      }
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red));
+    }
   }
 
   @override
@@ -81,44 +133,25 @@ class _InviteMembersScreenState extends State<InviteMembersScreen> {
                 children: [
                   const Text('Master Society QR', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.primaryDark)),
                   const SizedBox(height: 16),
-                  // Real scannable QR code
                   if (_isLoadingCode)
-                    const SizedBox(
-                      height: 200,
-                      child: Center(child: CircularProgressIndicator()),
-                    )
+                    const SizedBox(height: 200, child: Center(child: CircularProgressIndicator()))
                   else if (_inviteCode.isNotEmpty)
                     Container(
                       padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
+                      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
                       child: QrImageView(
                         data: 'RESIFLOW:INVITE:$_inviteCode',
                         version: QrVersions.auto,
                         size: 200,
                         backgroundColor: Colors.white,
-                        eyeStyle: const QrEyeStyle(
-                          eyeShape: QrEyeShape.square,
-                          color: AppTheme.primaryDark,
-                        ),
-                        dataModuleStyle: const QrDataModuleStyle(
-                          dataModuleShape: QrDataModuleShape.square,
-                          color: AppTheme.primaryDark,
-                        ),
+                        eyeStyle: const QrEyeStyle(eyeShape: QrEyeShape.square, color: AppTheme.primaryDark),
+                        dataModuleStyle: const QrDataModuleStyle(dataModuleShape: QrDataModuleShape.square, color: AppTheme.primaryDark),
                       ),
                     )
                   else
-                    const SizedBox(
-                      height: 200,
-                      child: Center(child: Text('Could not load QR code', style: TextStyle(color: Colors.red))),
-                    ),
+                    const SizedBox(height: 200, child: Center(child: Text('Could not load QR code', style: TextStyle(color: Colors.red)))),
                   const SizedBox(height: 16),
-                  Text(
-                    'Society Code: $_inviteCode',
-                    style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, letterSpacing: 2),
-                  ),
+                  Text('Society Code: $_inviteCode', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, letterSpacing: 2)),
                   const SizedBox(height: 8),
                   const Text('Residents can scan this QR or enter the code to join.', textAlign: TextAlign.center),
                 ],
@@ -132,9 +165,33 @@ class _InviteMembersScreenState extends State<InviteMembersScreen> {
             const SizedBox(height: 16),
             Row(
               children: [
-                Expanded(child: CustomTextField(controller: _wingController, label: 'Wing', hint: 'e.g. A')),
+                Expanded(
+                  child: DropdownButtonFormField<dynamic>(
+                    value: _selectedWing,
+                    decoration: const InputDecoration(labelText: 'Wing', border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12)))),
+                    items: _wings.map((w) => DropdownMenuItem(value: w, child: Text(w['name']))).toList(),
+                    onChanged: (val) {
+                      setState(() {
+                        _selectedWing = val;
+                        if (val != null && (val['units'] as List).isNotEmpty) {
+                          _selectedUnit = val['units'].first;
+                        } else {
+                          _selectedUnit = null;
+                        }
+                      });
+                    },
+                  ),
+                ),
                 const SizedBox(width: 16),
-                Expanded(flex: 2, child: CustomTextField(controller: _flatController, label: 'Flat No.', hint: 'e.g. 101')),
+                Expanded(
+                  flex: 2,
+                  child: DropdownButtonFormField<dynamic>(
+                    value: _selectedUnit,
+                    decoration: const InputDecoration(labelText: 'Flat / Unit', border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12)))),
+                    items: _selectedWing != null ? (_selectedWing['units'] as List).map((u) => DropdownMenuItem(value: u, child: Text(u['number']))).toList() : [],
+                    onChanged: (val) => setState(() => _selectedUnit = val),
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 16),

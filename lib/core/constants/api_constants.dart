@@ -8,18 +8,21 @@ class ApiConstants {
   static const String profile = '$baseUrl/auth/profile/';
   static const String refresh = '$baseUrl/auth/token/refresh/';
   
-  // Society
+  // Society Config & Management
   static const String societies = '$baseUrl/society/societies/';
+  static String societyDetail(int id) => '$societies$id/';
+  static String societyByInvite(String code) => '$societies/by-invite/?code=$code';
+  static String generateInvite(int id) => '$societies$id/generate-invite/';
   static const String wingsList = '$baseUrl/society/wings/';
   static const String unitsList = '$baseUrl/society/units/';
   static const String amenities = '$baseUrl/society/amenities/';
   static const String documents = '$baseUrl/society/documents/';
-  static String societyDetail(int id) => '$societies$id/';
   static String setupWing(int id) => '$societies$id/setup-wing/';
   static String joinSociety(int id) => '$societies$id/join/';
   static const String joinRequests = '$baseUrl/society/join-requests/';
   static const String submitJoinRequest = '$baseUrl/society/join-requests/submit/';
   static const String parkingLots = '$baseUrl/society/parking-lots/';
+  static String assignParkingTenant(int id) => '$parkingLots$id/assign-tenant/';
   
   // Gatekeeper
   static const String gatePasses = '$baseUrl/gatekeeper/gate-passes/';
@@ -42,4 +45,5 @@ class ApiConstants {
   // Directory
   static const String helpers = '$baseUrl/directory/staff/';
   static const String members = '$baseUrl/directory/members/';
+  static const String manageResidents = '$baseUrl/auth/manage-residents/';
 }
