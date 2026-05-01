@@ -16,12 +16,17 @@ import '../parking/parking_lots_screen.dart';
 import '../finance/maintenance_finance_screen.dart';
 import '../finance/resident_payments_screen.dart';
 import '../finance/resident_penalties_screen.dart';
+import '../finance/resident_finance_dashboard.dart';
 import '../directory/helpers_directory_screen.dart';
 import '../communication/community_forum_screen.dart';
 import '../communication/notices_screen.dart';
 import '../admin/society_info_screen.dart';
 import '../admin/manage_residents_screen.dart';
 import '../profile/profile_screen.dart';
+import '../gatekeeper/guard_security_screen.dart';
+import '../gatekeeper/visitor_logs_history_screen.dart';
+import '../admin/guard_attendance_report_screen.dart';
+import '../admin/manage_guards_screen.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
@@ -94,6 +99,10 @@ class DashboardScreen extends StatelessWidget {
                     onTap: () => _push(context, const ManageHelpersScreen())),
                   _DashboardItem(icon: Icons.currency_rupee, title: 'Finance',
                     onTap: () => _push(context, const MaintenanceFinanceScreen())),
+                  _DashboardItem(icon: Icons.admin_panel_settings, title: 'Manage Guards',
+                    onTap: () => _push(context, const ManageGuardsScreen())),
+                  _DashboardItem(icon: Icons.assignment_ind, title: 'Guard Attendance',
+                    onTap: () => _push(context, const GuardAttendanceReportScreen())),
                 ],
               ),
               const SizedBox(height: 24),
@@ -136,6 +145,8 @@ class DashboardScreen extends StatelessWidget {
                         _push(context, const ResidentPenaltiesScreen());
                       }
                     }),
+                  _DashboardItem(icon: Icons.account_balance, title: 'Society Finance',
+                    onTap: () => _push(context, const ResidentFinanceDashboard())),
                 ],
               ),
               const SizedBox(height: 24),
@@ -144,12 +155,14 @@ class DashboardScreen extends StatelessWidget {
             // ─── GUARD: SECURITY ───
             if (role == 'guard' || role == 'admin') ...[
               _buildSection(
-                title: 'Security',
+                title: 'Security & Gate',
                 items: [
-                  _DashboardItem(icon: Icons.camera_alt_outlined, title: 'Scan QR Pass',
+                  _DashboardItem(icon: Icons.security, title: 'Gate Management',
+                    onTap: () => _push(context, const GuardSecurityScreen())),
+                  _DashboardItem(icon: Icons.camera_alt_outlined, title: 'Quick Scan',
                     onTap: () => _push(context, const QRScannerScreen())),
                   _DashboardItem(icon: Icons.history, title: 'Visitor Logs',
-                    onTap: () {}),
+                    onTap: () => _push(context, const VisitorLogsHistoryScreen())),
                 ],
               ),
               const SizedBox(height: 24),

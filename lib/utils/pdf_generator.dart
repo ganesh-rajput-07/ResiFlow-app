@@ -14,9 +14,16 @@ class PdfGenerator {
   }) async {
     final pdf = pw.Document();
 
+    final font = await PdfGoogleFonts.robotoRegular();
+    final fontBold = await PdfGoogleFonts.robotoBold();
+
     pdf.addPage(
       pw.Page(
         pageFormat: PdfPageFormat.a4,
+        theme: pw.ThemeData.withFont(
+          base: font,
+          bold: fontBold,
+        ),
         build: (pw.Context context) {
           return pw.Center(
             child: pw.Container(

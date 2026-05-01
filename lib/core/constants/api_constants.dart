@@ -45,8 +45,17 @@ class ApiConstants {
   static const String income = '$baseUrl/finance/income/';
   static const String financeSummary = '$baseUrl/finance/income/finance-summary/';
   
+  // Gatekeeper
+  static const String visitorLogs = '$baseUrl/gatekeeper/visitor-logs/';
+  static const String visitorCheckout = '$baseUrl/gatekeeper/visitor-logs/'; // + id + /checkout/
+  static const String guardAttendance = '$baseUrl/gatekeeper/attendance/';
+  static const String guardLogin = '$baseUrl/gatekeeper/attendance/login/';
+  static const String guardLogout = '$baseUrl/gatekeeper/attendance/logout/';
+
+  
   // Directory
   static const String helpers = '$baseUrl/directory/staff/';
   static const String members = '$baseUrl/directory/members/';
   static const String manageResidents = '$baseUrl/auth/manage-residents/';
+  static const String manageGuards = '$baseUrl/auth/manage-guards/';
 }

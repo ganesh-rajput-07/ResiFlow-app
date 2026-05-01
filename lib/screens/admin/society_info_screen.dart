@@ -27,7 +27,7 @@ class _SocietyInfoScreenState extends State<SocietyInfoScreen> with SingleTicker
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
     _tabController.addListener(() {
       if (!_tabController.indexIsChanging) {
         setState(() {}); // Update FAB when swipe completes
@@ -35,6 +35,28 @@ class _SocietyInfoScreenState extends State<SocietyInfoScreen> with SingleTicker
     });
     _fetchAmenities();
     _fetchDocuments();
+    _fetchGuards();
+  }
+
+  List<dynamic> _guards = [];
+  bool _isLoadingGuards = true;
+
+  Future<void> _fetchGuards() async {
+    setState(() => _isLoadingGuards = true);
+    try {
+      // Fetch users with role 'guard'
+      final response = await _apiService.get('${ApiConstants.members}?role=guard');
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        setState(() {
+          _guards = data is List ? data : (data['results'] ?? []);
+        });
+      }
+    } catch (e) {
+      debugPrint('Error fetching guards: $e');
+    } finally {
+      if (mounted) setState(() => _isLoadingGuards = false);
+    }
   }
 
   @override
@@ -105,6 +127,7 @@ class _SocietyInfoScreenState extends State<SocietyInfoScreen> with SingleTicker
           tabs: const [
             Tab(text: 'Amenities'),
             Tab(text: 'Documents'),
+            Tab(text: 'Security'),
           ],
         ),
       ),
@@ -113,6 +136,7 @@ class _SocietyInfoScreenState extends State<SocietyInfoScreen> with SingleTicker
         children: [
           _buildAmenitiesTab(),
           _buildDocumentsTab(),
+          _buildSecurityTab(),
         ],
       ),
       floatingActionButton: (role == 'admin' || role == 'committee') ? FloatingActionButton.extended(
@@ -280,6 +304,41 @@ class _SocietyInfoScreenState extends State<SocietyInfoScreen> with SingleTicker
                 const SnackBar(content: Text('Downloading document...')),
               );
             },
+          ),
+        );
+      },
+    );
+  }
+  Widget _buildSecurityTab() {
+    if (_isLoadingGuards) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (_guards.isEmpty) {
+      return const Center(child: Text('No security staff registered.', style: TextStyle(color: Colors.grey)));
+    }
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: _guards.length,
+      itemBuilder: (context, index) {
+        final guard = _guards[index];
+        return Card(
+          margin: const EdgeInsets.only(bottom: 12),
+          child: ListTile(
+            leading: CircleAvatar(
+              backgroundColor: AppTheme.primaryLight,
+              backgroundImage: guard['profile_photo'] != null ? NetworkImage(guard['profile_photo']) : null,
+              child: guard['profile_photo'] == null ? const Icon(Icons.security, color: AppTheme.primaryColor) : null,
+            ),
+            title: Text(guard['full_name'] ?? guard['username'] ?? 'Guard', style: const TextStyle(fontWeight: FontWeight.bold)),
+            subtitle: Text(guard['phone'] ?? 'No contact'),
+            trailing: IconButton(
+              icon: const Icon(Icons.call, color: Colors.green),
+              onPressed: () {
+                if (guard['phone'] != null) {
+                   ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Calling ${guard['phone']}...')));
+                }
+              },
+            ),
           ),
         );
       },
