@@ -69,7 +69,7 @@ class _ManageComplaintsScreenState extends State<ManageComplaintsScreen> {
                       margin: const EdgeInsets.only(bottom: 12),
                       child: ExpansionTile(
                         title: Text(c['title'], style: const TextStyle(fontWeight: FontWeight.bold)),
-                        subtitle: Text('By: ${c['raised_by_name'] ?? 'Resident'}'),
+                        subtitle: Text('By: ${c['raised_by_name'] ?? 'Resident'} (${c['wing_name'] ?? ''} - ${c['unit_number'] ?? 'N/A'})'),
                         trailing: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(color: statusColor.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
