@@ -27,10 +27,7 @@ class _ManageResidentsScreenState extends State<ManageResidentsScreen> {
 
   Future<void> _fetchData() async {
     setState(() => _isLoading = true);
-    try {Run python3 manage.py makemigrations finance && python3 manage.py migrate (if not done already)
-    Restart Django server
-    Hot Restart Flutter app
-    
+    try {
       final futures = await Future.wait([
         _apiService.get(ApiConstants.manageResidents),
         _apiService.get(ApiConstants.wingsList),
