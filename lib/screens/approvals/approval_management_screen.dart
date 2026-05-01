@@ -1,10 +1,13 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+import '../../providers/auth_provider.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/constants/api_constants.dart';
 import '../../services/api_service.dart';
 import '../../models/pre_approval.dart';
+import '../../utils/pdf_generator.dart';
 
 class ApprovalManagementScreen extends StatefulWidget {
   const ApprovalManagementScreen({super.key});
@@ -116,6 +119,35 @@ class _ApprovalManagementScreenState extends State<ApprovalManagementScreen> {
                               )
                             ],
                           )
+                        ] else if (approval.status == 'approved' && approval.passId != null) ...[
+                          const SizedBox(height: 16),
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: OutlinedButton.icon(
+                              onPressed: () async {
+                                try {
+                                  final provider = Provider.of<AuthProvider>(context, listen: false);
+                                  await PdfGenerator.generateAndShareGatePass(
+                                    visitorName: approval.visitorName,
+                                    validFrom: approval.validFrom,
+                                    validTo: approval.validTo,
+                                    purpose: approval.purpose ?? 'Visitor',
+                                    passId: approval.passId!,
+                                    societyName: provider.user?['society_name'] ?? 'ResiFlow Society',
+                                  );
+                                } catch (e) {
+                                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error generating PDF: $e')));
+                                }
+                              },
+                              icon: const Icon(Icons.qr_code, size: 18),
+                              label: const Text('View Pass PDF'),
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: AppTheme.primaryColor,
+                                side: const BorderSide(color: AppTheme.primaryColor),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                              ),
+                            ),
+                          ),
                         ]
                       ],
                     ),

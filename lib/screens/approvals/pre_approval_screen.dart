@@ -126,7 +126,7 @@ class _PreApprovalScreenState extends State<PreApprovalScreen> {
                               const SizedBox(height: 12),
                               Align(
                                 alignment: Alignment.centerRight,
-                                child: ElevatedButton.icon(
+                                child: OutlinedButton.icon(
                                   onPressed: () async {
                                     try {
                                       final provider = Provider.of<AuthProvider>(context, listen: false);
@@ -145,9 +145,13 @@ class _PreApprovalScreenState extends State<PreApprovalScreen> {
                                       debugPrint('PDF Error: $e');
                                     }
                                   },
-                                  icon: const Icon(Icons.picture_as_pdf, size: 18),
-                                  label: const Text('View & Share Pass'),
-                                  style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primaryColor),
+                                  icon: const Icon(Icons.qr_code, size: 18),
+                                  label: const Text('View Pass PDF'),
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: AppTheme.primaryColor,
+                                    side: const BorderSide(color: AppTheme.primaryColor),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                  ),
                                 ),
                               ),
                             ]
