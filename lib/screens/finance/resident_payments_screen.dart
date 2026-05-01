@@ -40,18 +40,9 @@ class _ResidentPaymentsScreenState extends State<ResidentPaymentsScreen> with Si
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         final bills = data is List ? data : (data['results'] ?? []);
-        final now = DateTime.now();
-        final currentMonth = '${now.year}-${now.month.toString().padLeft(2, '0')}';
-
         setState(() {
-          _currentBills = bills.where((b) {
-            final created = b['created_at'] ?? '';
-            return created.startsWith(currentMonth);
-          }).toList();
-          _historyBills = bills.where((b) {
-            final created = b['created_at'] ?? '';
-            return !created.startsWith(currentMonth);
-          }).toList();
+          _currentBills = bills.where((b) => b['status'] != 'paid').toList();
+          _historyBills = bills.where((b) => b['status'] == 'paid').toList();
         });
       }
     } catch (e) {
@@ -244,7 +235,7 @@ Status: ${(bill['status'] ?? 'pending').toUpperCase()}
         bottom: TabBar(
           controller: _tabController,
           tabs: const [
-            Tab(text: 'Current Month'),
+            Tab(text: 'Pending Dues'),
             Tab(text: 'Payment History'),
           ],
         ),
@@ -256,7 +247,7 @@ Status: ${(bill['status'] ?? 'pending').toUpperCase()}
               children: [
                 // Current Month
                 _currentBills.isEmpty
-                    ? const Center(child: Text('No bills for this month yet.', style: TextStyle(color: Colors.grey)))
+                    ? const Center(child: Text('No pending dues!', style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold)))
                     : ListView.builder(
                         padding: const EdgeInsets.all(16),
                         itemCount: _currentBills.length,

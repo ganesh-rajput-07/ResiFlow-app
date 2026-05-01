@@ -1,6 +1,6 @@
 class ApiConstants {
-  // Use localhost for local development since we added new backend models
-  static const String baseUrl = 'http://127.0.0.1:8000/api';
+  // Update this to hit the production Vercel deployment
+  static const String baseUrl = 'https://resiflow-backend.vercel.app/api';
   
   // Auth
   static const String login = '$baseUrl/auth/login/';
