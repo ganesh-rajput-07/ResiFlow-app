@@ -144,7 +144,7 @@ class _ManageResidentsScreenState extends State<ManageResidentsScreen> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Scaffold(appBar: AppBar(title: Text('Manage Residents')), body: Center(child: CircularProgressIndicator()));
+      return Scaffold(appBar: AppBar(title: const Text('Manage Residents')), body: const Center(child: CircularProgressIndicator()));
     }
 
     return Scaffold(

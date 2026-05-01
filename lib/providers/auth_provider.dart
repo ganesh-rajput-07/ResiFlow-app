@@ -114,6 +114,11 @@ class AuthProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  void updateUser(Map<String, dynamic> data) {
+    _user = data;
+    notifyListeners();
+  }
+
   void _setLoading(bool value) {
     _isLoading = value;
     notifyListeners();
