@@ -48,6 +48,7 @@ class _PaymentSettingsScreenState extends State<PaymentSettingsScreen> {
           _amountController.text = (s['default_maintenance_amount'] ?? '0').toString();
           _bankAccountController.text = s['bank_account_number'] ?? '';
           _ifscController.text = s['bank_ifsc'] ?? '';
+          _upiController.text = s['upi_id'] ?? '';
           _cashEnabled = s['cash'] ?? true;
           _onlineEnabled = s['upload_receipt'] ?? false;
           // UPI is tracked via the upi field we check
@@ -68,6 +69,7 @@ class _PaymentSettingsScreenState extends State<PaymentSettingsScreen> {
         'default_maintenance_amount': _amountController.text,
         'bank_account_number': _bankAccountController.text,
         'bank_ifsc': _ifscController.text,
+        'upi_id': _upiController.text,
         'cash': _cashEnabled,
         'upload_receipt': _onlineEnabled,
         'easebuzz': _upiEnabled,

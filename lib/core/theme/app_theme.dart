@@ -69,6 +69,16 @@ class AppTheme {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         margin: const EdgeInsets.all(8),
       ),
+      tabBarTheme: const TabBarThemeData(
+        labelColor: Colors.white,
+        unselectedLabelColor: Colors.white60,
+        indicatorColor: Colors.white,
+        indicatorSize: TabBarIndicatorSize.tab,
+      ),
+      floatingActionButtonTheme: const FloatingActionButtonThemeData(
+        backgroundColor: primaryDark,
+        foregroundColor: Colors.white,
+      ),
     );
   }
 }

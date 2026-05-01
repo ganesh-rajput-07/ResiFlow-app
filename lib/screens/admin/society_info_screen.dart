@@ -97,9 +97,6 @@ class _SocietyInfoScreenState extends State<SocietyInfoScreen> with SingleTicker
         title: const Text('Society Info'),
         bottom: TabBar(
           controller: _tabController,
-          indicatorColor: Colors.white,
-          labelColor: Colors.white,
-          unselectedLabelColor: Colors.white60,
           tabs: const [
             Tab(text: 'Amenities'),
             Tab(text: 'Documents'),

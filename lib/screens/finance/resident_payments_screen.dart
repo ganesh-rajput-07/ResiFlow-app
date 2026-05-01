@@ -243,7 +243,6 @@ Status: ${(bill['status'] ?? 'pending').toUpperCase()}
         title: const Text('My Payments'),
         bottom: TabBar(
           controller: _tabController,
-          indicatorColor: Colors.white,
           tabs: const [
             Tab(text: 'Current Month'),
             Tab(text: 'Payment History'),

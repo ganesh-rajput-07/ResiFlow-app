@@ -12,6 +12,7 @@ import '../admin/invite_members_screen.dart';
 import '../admin/manage_helpers_screen.dart';
 import '../admin/resident_approval_screen.dart';
 import '../finance/penalties_screen.dart';
+import '../parking/parking_lots_screen.dart';
 import '../finance/maintenance_finance_screen.dart';
 import '../finance/resident_payments_screen.dart';
 import '../finance/resident_penalties_screen.dart';
@@ -61,10 +62,10 @@ class DashboardScreen extends StatelessWidget {
             ],
             const SizedBox(height: 28),
 
-            // ─── ADMIN PANEL ───
-            if (role == 'admin') ...[
+            // ─── ADMIN & COMMITTEE PANEL ───
+            if (role == 'admin' || role == 'committee') ...[
               _buildSection(
-                title: 'Admin Panel',
+                title: 'Admin & Committee Panel',
                 items: [
                   _DashboardItem(icon: Icons.settings, title: 'Society Config',
                     onTap: () => _push(context, const SocietyConfigScreen())),
@@ -72,6 +73,8 @@ class DashboardScreen extends StatelessWidget {
                     onTap: () => _push(context, const InviteMembersScreen())),
                   _DashboardItem(icon: Icons.how_to_reg, title: 'Approvals',
                     onTap: () => _push(context, const ResidentApprovalScreen())),
+                  _DashboardItem(icon: Icons.vpn_key, title: 'Gate Pass Requests',
+                    onTap: () => _push(context, const ApprovalManagementScreen())),
                   _DashboardItem(icon: Icons.gavel, title: 'Penalties',
                     onTap: () => _push(context, const PenaltiesScreen())),
                   _DashboardItem(icon: Icons.cleaning_services, title: 'Manage Staff',
@@ -84,20 +87,14 @@ class DashboardScreen extends StatelessWidget {
             ],
 
             // ─── RESIDENT: QUICK ACCESS ───
-            if (role == 'admin' || role == 'resident') ...[
+            if (role != 'guard') ...[
               _buildSection(
                 title: 'Quick Access',
                 items: [
-                  _DashboardItem(icon: Icons.qr_code_scanner, title: 'Gate Pass',
-                    onTap: () => _push(context, const CreatePassScreen())),
-                  _DashboardItem(icon: Icons.people_outline, title: 'Pre-Approval',
-                    onTap: () {
-                      if (role == 'admin') {
-                        _push(context, const ApprovalManagementScreen());
-                      } else {
-                        _push(context, const PreApprovalScreen());
-                      }
-                    }),
+                  _DashboardItem(icon: Icons.qr_code_scanner, title: 'Gate Pass Request',
+                    onTap: () => _push(context, const PreApprovalScreen())),
+                  _DashboardItem(icon: Icons.local_parking, title: 'Parking Lots',
+                    onTap: () => _push(context, const ParkingLotsScreen())),
                   _DashboardItem(icon: Icons.cleaning_services, title: 'Helpers',
                     onTap: () => _push(context, const HelpersDirectoryScreen())),
                 ],
@@ -106,13 +103,13 @@ class DashboardScreen extends StatelessWidget {
             ],
 
             // ─── RESIDENT: PAYMENTS & PENALTIES ───
-            if (role == 'admin' || role == 'resident') ...[
+            if (role != 'guard') ...[
               _buildSection(
                 title: 'Payments & Dues',
                 items: [
                   _DashboardItem(icon: Icons.payment, title: 'Maintenance',
                     onTap: () {
-                      if (role == 'admin') {
+                      if (role == 'admin' || role == 'committee') {
                         _push(context, const MaintenanceFinanceScreen());
                       } else {
                         _push(context, const ResidentPaymentsScreen());
@@ -120,7 +117,7 @@ class DashboardScreen extends StatelessWidget {
                     }),
                   _DashboardItem(icon: Icons.gavel, title: 'My Penalties',
                     onTap: () {
-                      if (role == 'admin') {
+                      if (role == 'admin' || role == 'committee') {
                         _push(context, const PenaltiesScreen());
                       } else {
                         _push(context, const ResidentPenaltiesScreen());

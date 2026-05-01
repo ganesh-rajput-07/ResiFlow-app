@@ -19,6 +19,7 @@ class ApiConstants {
   static String joinSociety(int id) => '$societies$id/join/';
   static const String joinRequests = '$baseUrl/society/join-requests/';
   static const String submitJoinRequest = '$baseUrl/society/join-requests/submit/';
+  static const String parkingLots = '$baseUrl/society/parking-lots/';
   
   // Gatekeeper
   static const String gatePasses = '$baseUrl/gatekeeper/gate-passes/';

@@ -44,8 +44,8 @@ class _MonthlyTrackerScreenState extends State<MonthlyTrackerScreen> with Single
         final bills = data is List ? data : (data['results'] ?? []);
         setState(() {
           _allBills = bills;
-          _paidBills = bills.where((b) => b['status'] == 'paid').toList();
-          _pendingBills = bills.where((b) => b['status'] == 'pending' || b['status'] == 'overdue').toList();
+          _paidBills = bills.where((dynamic b) { return b['status'] == 'paid'; }).toList();
+          _pendingBills = bills.where((dynamic b) { return b['status'] == 'pending' || b['status'] == 'overdue'; }).toList();
         });
       }
     } catch (e) {
@@ -169,6 +169,8 @@ class _MonthlyTrackerScreenState extends State<MonthlyTrackerScreen> with Single
           TabBar(
             controller: _tabController,
             labelColor: AppTheme.primaryColor,
+            unselectedLabelColor: Colors.grey,
+            indicatorColor: AppTheme.primaryColor,
             tabs: const [
               Tab(text: 'All'),
               Tab(text: 'Paid'),

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../core/constants/api_constants.dart';
@@ -68,10 +69,18 @@ class ApiService {
     request.fields.addAll(fields);
     
     if (fileField != null) {
-      if (filePath != null) {
-        request.files.add(await http.MultipartFile.fromPath(fileField, filePath));
-      } else if (fileBytes != null && fileName != null) {
-        request.files.add(http.MultipartFile.fromBytes(fileField, fileBytes, filename: fileName));
+      if (kIsWeb) {
+        // Web requires fromBytes
+        if (fileBytes != null && fileName != null) {
+          request.files.add(http.MultipartFile.fromBytes(fileField, fileBytes, filename: fileName));
+        }
+      } else {
+        // Mobile/Desktop can use fromPath
+        if (filePath != null) {
+          request.files.add(await http.MultipartFile.fromPath(fileField, filePath));
+        } else if (fileBytes != null && fileName != null) {
+          request.files.add(http.MultipartFile.fromBytes(fileField, fileBytes, filename: fileName));
+        }
       }
     }
     
