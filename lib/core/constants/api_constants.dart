@@ -41,6 +41,9 @@ class ApiConstants {
   static const String bills = '$baseUrl/finance/bills/';
   static const String generateMonthlyBills = '$baseUrl/finance/bills/generate-monthly/';
   static const String penalties = '$baseUrl/finance/penalties/';
+  static const String expenses = '$baseUrl/finance/expenses/';
+  static const String income = '$baseUrl/finance/income/';
+  static const String financeSummary = '$baseUrl/finance/income/finance-summary/';
   
   // Directory
   static const String helpers = '$baseUrl/directory/staff/';

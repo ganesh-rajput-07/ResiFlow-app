@@ -23,6 +23,7 @@ class _InviteMembersScreenState extends State<InviteMembersScreen> {
   bool _isLoadingCode = true;
   List<dynamic> _wings = [];
   dynamic _selectedWing;
+  String? _selectedFloor;
   dynamic _selectedUnit;
 
   @override
@@ -43,14 +44,6 @@ class _InviteMembersScreenState extends State<InviteMembersScreen> {
         setState(() {
           _inviteCode = data['invite_code'] ?? '';
           _wings = data['wings'] ?? [];
-          if (_wings.isNotEmpty) {
-            _selectedWing = _wings.first;
-            if ((_selectedWing['units'] as List).isNotEmpty) {
-              _selectedUnit = _selectedWing['units'].first;
-            } else {
-              _selectedUnit = null;
-            }
-          }
           _isLoadingCode = false;
         });
       }
@@ -62,8 +55,44 @@ class _InviteMembersScreenState extends State<InviteMembersScreen> {
     }
   }
 
+  // --- Derived data ---
+  List<String> get _availableFloors {
+    if (_selectedWing == null) return [];
+    final units = List.from(_selectedWing['units'] ?? []);
+    final floors = <String>{};
+    for (var u in units) {
+      final number = u['number'].toString();
+      if (number.length >= 3 && int.tryParse(number) != null) {
+        floors.add(number.substring(0, number.length - 2));
+      } else {
+        floors.add('G');
+      }
+    }
+    final sorted = floors.toList()
+      ..sort((a, b) {
+        final ai = int.tryParse(a);
+        final bi = int.tryParse(b);
+        if (ai != null && bi != null) return ai.compareTo(bi);
+        return a.compareTo(b);
+      });
+    return sorted;
+  }
+
+  List<dynamic> get _floorUnits {
+    if (_selectedWing == null || _selectedFloor == null) return [];
+    final units = List.from(_selectedWing['units'] ?? []);
+    return units.where((u) {
+      final number = u['number'].toString();
+      String floor = 'G';
+      if (number.length >= 3 && int.tryParse(number) != null) {
+        floor = number.substring(0, number.length - 2);
+      }
+      return floor == _selectedFloor;
+    }).toList();
+  }
+
   void _sendInvite() async {
-    if (_selectedWing == null || _selectedUnit == null || _mobileController.text.isEmpty) {
+    if (_selectedUnit == null || _mobileController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please select a unit and enter mobile number.')));
       return;
     }
@@ -163,38 +192,53 @@ class _InviteMembersScreenState extends State<InviteMembersScreen> {
               child: Text('Direct Manual Invite', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             ),
             const SizedBox(height: 16),
+
+            // --- Wing & Floor ---
             Row(
               children: [
                 Expanded(
                   child: DropdownButtonFormField<dynamic>(
                     value: _selectedWing,
                     decoration: const InputDecoration(labelText: 'Wing', border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12)))),
-                    items: _wings.map((w) => DropdownMenuItem(value: w, child: Text(w['name']))).toList(),
+                    items: _wings.map((w) => DropdownMenuItem(value: w, child: Text(w['name'] ?? ''))).toList(),
                     onChanged: (val) {
                       setState(() {
                         _selectedWing = val;
-                        if (val != null && (val['units'] as List).isNotEmpty) {
-                          _selectedUnit = val['units'].first;
-                        } else {
-                          _selectedUnit = null;
-                        }
+                        _selectedFloor = null;
+                        _selectedUnit = null;
                       });
                     },
                   ),
                 ),
-                const SizedBox(width: 16),
+                const SizedBox(width: 12),
                 Expanded(
-                  flex: 2,
-                  child: DropdownButtonFormField<dynamic>(
-                    value: _selectedUnit,
-                    decoration: const InputDecoration(labelText: 'Flat / Unit', border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12)))),
-                    items: _selectedWing != null ? (_selectedWing['units'] as List).map((u) => DropdownMenuItem(value: u, child: Text(u['number']))).toList() : [],
-                    onChanged: (val) => setState(() => _selectedUnit = val),
+                  child: DropdownButtonFormField<String>(
+                    value: _selectedFloor,
+                    decoration: const InputDecoration(labelText: 'Floor', border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12)))),
+                    items: _availableFloors.map((f) => DropdownMenuItem(value: f, child: Text(f == 'G' ? 'Ground' : 'Floor $f'))).toList(),
+                    onChanged: _selectedWing == null
+                        ? null
+                        : (val) {
+                            setState(() {
+                              _selectedFloor = val;
+                              _selectedUnit = null;
+                            });
+                          },
                   ),
                 ),
               ],
             ),
+            const SizedBox(height: 12),
+
+            // --- Unit ---
+            DropdownButtonFormField<dynamic>(
+              value: _selectedUnit,
+              decoration: const InputDecoration(labelText: 'Flat / Unit', border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12)))),
+              items: _floorUnits.map((u) => DropdownMenuItem(value: u, child: Text('${_selectedWing?['name']}-${u['number']}'))).toList(),
+              onChanged: _selectedFloor == null ? null : (val) => setState(() => _selectedUnit = val),
+            ),
             const SizedBox(height: 16),
+
             CustomTextField(controller: _mobileController, label: 'Mobile Number', hint: '10-digit number', keyboardType: TextInputType.phone, prefixIcon: Icons.phone),
             const SizedBox(height: 24),
             CustomButton(text: 'Send Invite Link via WhatsApp', onPressed: _sendInvite),
