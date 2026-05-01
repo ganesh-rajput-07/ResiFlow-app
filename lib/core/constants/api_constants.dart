@@ -58,4 +58,5 @@ class ApiConstants {
   static const String members = '$baseUrl/directory/members/';
   static const String manageResidents = '$baseUrl/auth/manage-residents/';
   static const String manageGuards = '$baseUrl/auth/manage-guards/';
+  static const String societyDirectory = '$baseUrl/directory/society-directory/';
 }

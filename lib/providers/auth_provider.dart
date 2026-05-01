@@ -41,7 +41,7 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-  Future<bool> register(Map<String, String> data) async {
+  Future<bool> register(Map<String, dynamic> data) async {
     _setLoading(true);
     _error = null;
     try {

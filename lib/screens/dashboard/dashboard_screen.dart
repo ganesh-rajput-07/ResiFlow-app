@@ -17,6 +17,7 @@ import '../finance/maintenance_finance_screen.dart';
 import '../finance/resident_payments_screen.dart';
 import '../finance/resident_penalties_screen.dart';
 import '../finance/resident_finance_dashboard.dart';
+import '../directory/society_directory_screen.dart';
 import '../directory/helpers_directory_screen.dart';
 import '../communication/community_forum_screen.dart';
 import '../communication/notices_screen.dart';
@@ -25,6 +26,8 @@ import '../admin/manage_residents_screen.dart';
 import '../profile/profile_screen.dart';
 import '../gatekeeper/guard_security_screen.dart';
 import '../gatekeeper/visitor_logs_history_screen.dart';
+import '../communication/raise_complaint_screen.dart';
+import '../communication/manage_complaints_screen.dart';
 import '../admin/guard_attendance_report_screen.dart';
 import '../admin/manage_guards_screen.dart';
 
@@ -101,6 +104,8 @@ class DashboardScreen extends StatelessWidget {
                     onTap: () => _push(context, const MaintenanceFinanceScreen())),
                   _DashboardItem(icon: Icons.admin_panel_settings, title: 'Manage Guards',
                     onTap: () => _push(context, const ManageGuardsScreen())),
+                  _DashboardItem(icon: Icons.feedback, title: 'Complaints',
+                    onTap: () => _push(context, const ManageComplaintsScreen())),
                   _DashboardItem(icon: Icons.assignment_ind, title: 'Guard Attendance',
                     onTap: () => _push(context, const GuardAttendanceReportScreen())),
                 ],
@@ -117,6 +122,8 @@ class DashboardScreen extends StatelessWidget {
                     onTap: () => _push(context, const PreApprovalScreen())),
                   _DashboardItem(icon: Icons.history, title: 'Visitor Logs',
                     onTap: () => _push(context, const VisitorLogsHistoryScreen())),
+                  _DashboardItem(icon: Icons.report_problem, title: 'Complaints',
+                    onTap: () => _push(context, const RaiseComplaintScreen())),
                   _DashboardItem(icon: Icons.local_parking, title: 'Parking Lots',
                     onTap: () => _push(context, const ParkingLotsScreen())),
                   _DashboardItem(icon: Icons.cleaning_services, title: 'Helpers',
@@ -147,6 +154,10 @@ class DashboardScreen extends StatelessWidget {
                         _push(context, const ResidentPenaltiesScreen());
                       }
                     }),
+                  _DashboardItem(icon: Icons.people, title: 'Resident Directory',
+                    onTap: () => _push(context, const SocietyDirectoryScreen())),
+                  _DashboardItem(icon: Icons.info_outline, title: 'Society Info',
+                    onTap: () => _push(context, const SocietyInfoScreen())),
                   _DashboardItem(icon: Icons.account_balance, title: 'Society Finance',
                     onTap: () => _push(context, const ResidentFinanceDashboard())),
                 ],

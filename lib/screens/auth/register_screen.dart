@@ -21,6 +21,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
   final _otpController = TextEditingController();
+  final _vehicleNumberController = TextEditingController();
+  String _selectedVehicleType = '2_wheeler';
 
   // Firebase OTP Tracking variables
   // String? _verificationId;
@@ -59,6 +61,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
       'first_name': _firstNameController.text,
       'last_name': _lastNameController.text,
       'phone': _phoneController.text,
+      'vehicles': [
+        {
+          'vehicle_type': _selectedVehicleType,
+          'vehicle_number': _vehicleNumberController.text,
+        }
+      ],
     });
 
     if (success && mounted) {
@@ -197,6 +205,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
               CustomTextField(controller: _usernameController, label: 'Username', hint: 'Choose a username', prefixIcon: Icons.person_outline),
               const SizedBox(height: 16),
               CustomTextField(controller: _passwordController, label: 'Password', hint: 'Create a password', obscureText: true, prefixIcon: Icons.lock_outline),
+              const SizedBox(height: 24),
+              const Text('Vehicle Details (Optional)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              const SizedBox(height: 12),
+              DropdownButtonFormField<String>(
+                value: _selectedVehicleType,
+                decoration: const InputDecoration(labelText: 'Vehicle Type', border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12)))),
+                items: const [
+                  DropdownMenuItem(value: '2_wheeler', child: Text('2 Wheeler')),
+                  DropdownMenuItem(value: '4_wheeler', child: Text('4 Wheeler')),
+                ],
+                onChanged: (val) => setState(() => _selectedVehicleType = val!),
+              ),
+              const SizedBox(height: 12),
+              CustomTextField(controller: _vehicleNumberController, label: 'Vehicle Number', hint: 'e.g. GJ01AB1234', prefixIcon: Icons.directions_car),
               const SizedBox(height: 32),
               CustomButton(text: 'Register', onPressed: _handleRegister, isLoading: isLoading),
               const SizedBox(height: 24),
