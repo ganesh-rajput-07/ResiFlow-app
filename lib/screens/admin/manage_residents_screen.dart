@@ -192,6 +192,7 @@ class _EditResidentFormState extends State<_EditResidentForm> {
   String? _selectedFloor;
   dynamic _selectedUnit;
   int? _selectedParkingId;
+  String _selectedRole = 'owner';
 
   @override
   void initState() {
@@ -231,6 +232,14 @@ class _EditResidentFormState extends State<_EditResidentForm> {
       final currentParking = widget.parkingLots.firstWhere((p) => p['tenant'] == widget.resident['id']);
       _selectedParkingId = currentParking['id'];
     } catch (_) {}
+
+    // Initialize role
+    final List residentUnits = widget.resident['resident_units'] ?? [];
+    if (residentUnits.isNotEmpty) {
+      _selectedRole = residentUnits[0]['role'] ?? 'owner';
+    } else {
+      _selectedRole = widget.resident['is_renter'] == true ? 'tenant' : 'owner';
+    }
   }
 
   // --- Derived data ---
@@ -360,6 +369,22 @@ class _EditResidentFormState extends State<_EditResidentForm> {
           ),
           const SizedBox(height: 16),
 
+          // --- Role (Owner/Renter) ---
+          DropdownButtonFormField<String>(
+            value: _selectedRole == 'tenant' ? 'renter' : _selectedRole,
+            decoration: const InputDecoration(
+              labelText: 'Occupancy Type',
+              border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
+              prefixIcon: Icon(Icons.person_outline),
+            ),
+            items: const [
+              DropdownMenuItem(value: 'owner', child: Text('Owner')),
+              DropdownMenuItem(value: 'renter', child: Text('Renter')),
+            ],
+            onChanged: (val) => setState(() => _selectedRole = val == 'renter' ? 'tenant' : 'owner'),
+          ),
+          const SizedBox(height: 16),
+
           // --- Parking ---
           DropdownButtonFormField<int?>(
             value: _selectedParkingId,
@@ -386,14 +411,15 @@ class _EditResidentFormState extends State<_EditResidentForm> {
             onPressed: () async {
               setState(() => _isSaving = true);
               try {
-                // 1. Update Unit
+                // 1. Update Unit & Role
                 final newUnitId = _selectedUnit?['id'];
-                if (newUnitId != null && newUnitId != r['unit']) {
-                  await _apiService.put(
-                    '${ApiConstants.manageResidents}${r['id']}/',
-                    {'unit_id': newUnitId},
-                  );
-                }
+                await _apiService.put(
+                  '${ApiConstants.manageResidents}${r['id']}/',
+                  {
+                    if (newUnitId != null) 'unit_id': newUnitId,
+                    'resident_role': _selectedRole,
+                  },
+                );
 
                 // 2. Update Parking (if changed)
                 if (_selectedParkingId != originalParking?['id']) {

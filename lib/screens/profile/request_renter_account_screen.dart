@@ -39,14 +39,28 @@ class _RequestRenterScreenState extends State<RequestRenterScreen> {
   Future<void> _fetchMyUnits() async {
     setState(() => _isLoadingUnits = true);
     try {
-      final user = context.read<AuthProvider>().user;
-      final response = await _apiService.get(ApiConstants.profile);
+      final authProvider = context.read<AuthProvider>();
+      final user = authProvider.user;
+      final role = user?['role']?.toString().toLowerCase();
+      
+      // Fetch specifically from the resident-units endpoint
+      final response = await _apiService.get(ApiConstants.residentUnits);
+      debugPrint('ResidentUnits response: ${response.body}');
+      
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        final List residentUnits = data['resident_units'] ?? [];
-        // Only show units where the user is an owner
+        List allUnits = data is List ? data : (data['results'] ?? []);
+        
         setState(() {
-          _myUnits = residentUnits.where((u) => u['role'] == 'owner').toList();
+          if (role == 'admin' || role == 'committee') {
+            _myUnits = allUnits;
+          } else {
+            _myUnits = allUnits.where((u) {
+              final uRole = u['role']?.toString().toLowerCase();
+              return uRole == 'owner';
+            }).toList();
+          }
+          
           if (_myUnits.isNotEmpty) {
             _selectedUnit = _myUnits[0];
           }
@@ -84,8 +98,20 @@ class _RequestRenterScreenState extends State<RequestRenterScreen> {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Renter request submitted to admin!'), backgroundColor: Colors.green));
         Navigator.pop(context);
       } else {
-        final err = jsonDecode(response.body)['error'] ?? 'Submission failed';
-        if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(err), backgroundColor: Colors.red));
+        String errorMessage = 'Submission failed';
+        try {
+          final decodedBody = jsonDecode(response.body);
+          if (decodedBody is Map) {
+            errorMessage = decodedBody['error']?.toString() ?? 
+                           decodedBody['non_field_errors']?.first?.toString() ?? 
+                           decodedBody.values.first?.first?.toString() ?? 
+                           'Submission failed';
+          } else if (decodedBody is List && decodedBody.isNotEmpty) {
+            errorMessage = decodedBody.first.toString();
+          }
+        } catch (_) {}
+        
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(errorMessage), backgroundColor: Colors.red));
       }
     } catch (e) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red));
@@ -115,18 +141,34 @@ class _RequestRenterScreenState extends State<RequestRenterScreen> {
                   // Unit Dropdown
                   const Text('Select Your Flat', style: TextStyle(fontWeight: FontWeight.bold)),
                   const SizedBox(height: 8),
-                  DropdownButtonFormField<dynamic>(
-                    value: _selectedUnit,
-                    decoration: const InputDecoration(
-                      border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
-                      prefixIcon: Icon(Icons.apartment),
-                    ),
-                    items: _myUnits.map((u) => DropdownMenuItem(
-                      value: u,
-                      child: Text('Unit ${u['unit_number']} (${u['wing_name']})'),
-                    )).toList(),
-                    onChanged: (val) => setState(() => _selectedUnit = val),
-                  ),
+                  _myUnits.isEmpty 
+                    ? Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.orange.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.orange),
+                        ),
+                        child: const Row(
+                          children: [
+                            Icon(Icons.warning_amber_rounded, color: Colors.orange),
+                            SizedBox(width: 12),
+                            Expanded(child: Text('No owned units found. You must be an owner to request a renter account.', style: TextStyle(color: Colors.orange, fontSize: 13))),
+                          ],
+                        ),
+                      )
+                    : DropdownButtonFormField<dynamic>(
+                        value: _selectedUnit,
+                        decoration: const InputDecoration(
+                          border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
+                          prefixIcon: Icon(Icons.apartment),
+                        ),
+                        items: _myUnits.map((u) => DropdownMenuItem(
+                          value: u,
+                          child: Text('Unit ${u['unit_number']} (${u['wing_name']})'),
+                        )).toList(),
+                        onChanged: (val) => setState(() => _selectedUnit = val),
+                      ),
                   
                   const SizedBox(height: 24),
                   const Text('Renter Details', style: TextStyle(fontWeight: FontWeight.bold)),

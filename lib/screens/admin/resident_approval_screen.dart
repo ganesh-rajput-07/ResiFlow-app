@@ -120,32 +120,96 @@ class _ResidentApprovalScreenState extends State<ResidentApprovalScreen> {
   }
 
   Future<void> _rejectRenterRequest(dynamic request) async {
-    final response = await _apiService.post(
-      '${ApiConstants.renterRequests}${request['id']}/reject/',
-      {'note': 'Rejected by admin'},
+    final noteController = TextEditingController();
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Reject Renter Request'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('Reject renter account for ${request['first_name']}?'),
+            const SizedBox(height: 16),
+            TextField(
+              controller: noteController,
+              decoration: const InputDecoration(
+                labelText: 'Reason (optional)',
+                hintText: 'Why are you rejecting this?',
+                border: OutlineInputBorder(),
+              ),
+              maxLines: 2,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Reject', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
     );
-    if (response.statusCode == 200 && mounted) {
-      _fetchRequests();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Renter request rejected.'), backgroundColor: Colors.orange),
+
+    if (confirmed == true) {
+      final response = await _apiService.post(
+        '${ApiConstants.renterRequests}${request['id']}/reject/',
+        {'note': noteController.text},
       );
+      if (response.statusCode == 200 && mounted) {
+        _fetchRequests();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Renter request rejected.'), backgroundColor: Colors.orange),
+        );
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final pendingJoinCount = _joinRequests.where((r) => r['status'] == 'pending').length;
+    final pendingRenterCount = _renterRequests.where((r) => r['status'] == 'pending').length;
+
     return DefaultTabController(
       length: 2,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Approvals'),
+          title: const Text('Resident Approvals'),
           actions: [
             IconButton(icon: const Icon(Icons.refresh), onPressed: _fetchRequests),
           ],
-          bottom: const TabBar(
+          bottom: TabBar(
             tabs: [
-              Tab(text: 'Join Requests'),
-              Tab(text: 'Renter Requests'),
+              Tab(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text('Join Requests'),
+                    if (pendingJoinCount > 0)
+                      Container(
+                        margin: const EdgeInsets.only(left: 8),
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(color: Colors.orange, borderRadius: BorderRadius.circular(10)),
+                        child: Text('$pendingJoinCount', style: const TextStyle(fontSize: 10, color: Colors.white, fontWeight: FontWeight.bold)),
+                      ),
+                  ],
+                ),
+              ),
+              Tab(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text('Renter Requests'),
+                    if (pendingRenterCount > 0)
+                      Container(
+                        margin: const EdgeInsets.only(left: 8),
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(color: Colors.orange, borderRadius: BorderRadius.circular(10)),
+                        child: Text('$pendingRenterCount', style: const TextStyle(fontSize: 10, color: Colors.white, fontWeight: FontWeight.bold)),
+                      ),
+                  ],
+                ),
+              ),
             ],
           ),
         ),
@@ -285,6 +349,10 @@ class _ResidentApprovalScreenState extends State<ResidentApprovalScreen> {
               runSpacing: 8,
               children: [
                 _InfoChip(icon: Icons.door_front_door, label: 'Unit: ${request['requested_unit']}'),
+                _InfoChip(
+                  icon: (request['resident_type'] == 'renter') ? Icons.key : Icons.home,
+                  label: (request['resident_type'] ?? 'owner').toString().toUpperCase(),
+                ),
                 _InfoChip(icon: Icons.people, label: 'Family: ${request['family_members_count']}'),
                 _InfoChip(icon: Icons.directions_car, label: 'Vehicles: ${request['vehicles_count']}'),
                 if ((request['parking_number'] ?? '').isNotEmpty)

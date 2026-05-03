@@ -27,6 +27,7 @@ class _JoinSocietyScreenState extends State<JoinSocietyScreen> {
   bool _isCodeVerified = false;
   bool _isUnitInvite = false;
   String _societyName = '';
+  String _residentType = 'owner'; // 'owner' or 'renter'
   List<dynamic> _wings = [];
   dynamic _selectedWing;
   dynamic _selectedUnit;
@@ -115,6 +116,7 @@ class _JoinSocietyScreenState extends State<JoinSocietyScreen> {
         {
           'invite_code': _codeController.text.trim(),
           'requested_unit': '${_selectedWing['name']}-${_selectedUnit['number']}',
+          'resident_type': _residentType,
           'family_members_count': int.tryParse(_personsController.text) ?? 1,
           'family_details': _familyDetailsController.text,
           'vehicles_count': int.tryParse(_vehiclesController.text) ?? 0,
@@ -239,6 +241,25 @@ class _JoinSocietyScreenState extends State<JoinSocietyScreen> {
                         child: const Text('Change Code'),
                       )
                     ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+                const Text('Occupancy Type', style: TextStyle(fontWeight: FontWeight.bold)),
+                const SizedBox(height: 12),
+                SegmentedButton<String>(
+                  segments: const [
+                    ButtonSegment(value: 'owner', label: Text('Owner'), icon: Icon(Icons.home)),
+                    ButtonSegment(value: 'renter', label: Text('Renter'), icon: Icon(Icons.key)),
+                  ],
+                  selected: {_residentType},
+                  onSelectionChanged: (Set<String> newSelection) {
+                    setState(() {
+                      _residentType = newSelection.first;
+                    });
+                  },
+                  style: SegmentedButton.styleFrom(
+                    selectedBackgroundColor: AppTheme.primaryColor,
+                    selectedForegroundColor: Colors.white,
                   ),
                 ),
                 const SizedBox(height: 24),

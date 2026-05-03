@@ -202,8 +202,45 @@ class _RentingDetailsScreenState extends State<RentingDetailsScreen> {
     );
   }
 
+  Future<void> _deleteRenter(int residentUnitId, String name) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Remove Renter'),
+        content: Text('Are you sure you want to remove $name as a renter? This will delete their access to this unit.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Remove', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      setState(() => _isLoading = true);
+      try {
+        final response = await _apiService.post('${ApiConstants.residentUnits}$residentUnitId/delete_renter/', {});
+        if (response.statusCode == 200) {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Renter removed successfully')));
+          _fetchRentingDetails();
+        } else {
+          final error = jsonDecode(response.body);
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error['error'] ?? 'Failed to remove renter'), backgroundColor: Colors.red));
+        }
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red));
+      } finally {
+        if (mounted) setState(() => _isLoading = false);
+      }
+    }
+  }
+
   Widget _buildResidentTile(dynamic res) {
     final ud = res['user_details'] ?? {};
+    final String fullName = '${ud['first_name'] ?? ''} ${ud['last_name'] ?? ''}'.trim();
+    
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
@@ -224,7 +261,7 @@ class _RentingDetailsScreenState extends State<RentingDetailsScreen> {
               children: [
                 Row(
                   children: [
-                    Text('${ud['first_name'] ?? ''} ${ud['last_name'] ?? ''}'.trim(), style: const TextStyle(fontWeight: FontWeight.bold)),
+                    Text(fullName.isEmpty ? 'Unknown' : fullName, style: const TextStyle(fontWeight: FontWeight.bold)),
                     const SizedBox(width: 8),
                     const RentBadge(isRenter: true, fontSize: 8),
                   ],
@@ -234,10 +271,8 @@ class _RentingDetailsScreenState extends State<RentingDetailsScreen> {
             ),
           ),
           IconButton(
-            icon: const Icon(Icons.phone, color: Colors.green, size: 20),
-            onPressed: () {
-              // TODO: Launch dialer
-            },
+            icon: const Icon(Icons.delete_outline, color: Colors.red, size: 20),
+            onPressed: () => _deleteRenter(res['id'], fullName),
           ),
         ],
       ),
