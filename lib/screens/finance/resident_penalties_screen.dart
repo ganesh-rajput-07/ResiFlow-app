@@ -128,6 +128,10 @@ class _ResidentPenaltiesScreenState extends State<ResidentPenaltiesScreen> {
               isPaid ? 'PAID ✓' : 'UNPAID',
               style: TextStyle(color: isPaid ? Colors.green : Colors.red, fontWeight: FontWeight.bold, fontSize: 12),
             ),
+            if (p['unit_number'] != null) ...[
+              const SizedBox(height: 4),
+              Text('Unit: ${p['unit_number']}', style: const TextStyle(color: Colors.grey, fontSize: 12)),
+            ],
           ],
         ),
       ),

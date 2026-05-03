@@ -30,6 +30,7 @@ import '../communication/raise_complaint_screen.dart';
 import '../communication/manage_complaints_screen.dart';
 import '../admin/guard_attendance_report_screen.dart';
 import '../admin/manage_guards_screen.dart';
+import '../profile/renting_details_screen.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
@@ -78,18 +79,29 @@ class DashboardScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Welcome Header
-            Text(
-              'Welcome, ${user?['first_name'] ?? user?['username'] ?? 'User'}!',
-              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Welcome, ${user?['first_name'] ?? user?['username'] ?? 'User'}!',
+                        style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                      ),
+                      if (user?['society_name'] != null)
+                        Text(
+                          '${user?['society_name']}',
+                          style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                        ),
+                    ],
+                  ),
+                ),
+                if (role == 'resident' || role == 'committee') _buildUnitSwitcher(context),
+              ],
             ),
-            if (user?['society_name'] != null) ...[
-              const SizedBox(height: 4),
-              Text(
-                '${user?['society_name']} - Unit ${user?['unit_number'] ?? 'N/A'}',
-                style: const TextStyle(fontSize: 16, color: Colors.grey),
-              ),
-            ],
-            const SizedBox(height: 28),
+            const SizedBox(height: 20),
 
             // ─── ADMIN & COMMITTEE PANEL ───
             if (role == 'admin' || role == 'committee') ...[
@@ -136,6 +148,8 @@ class DashboardScreen extends StatelessWidget {
                     onTap: () => _push(context, const RaiseComplaintScreen())),
                   _DashboardItem(icon: Icons.local_parking, title: 'Parking Lots',
                     onTap: () => _push(context, const ParkingLotsScreen())),
+                  _DashboardItem(icon: Icons.vpn_key_outlined, title: 'Renting & Units',
+                    onTap: () => _push(context, const RentingDetailsScreen())),
                   _DashboardItem(icon: Icons.cleaning_services, title: 'Helpers',
                     onTap: () => _push(context, const HelpersDirectoryScreen())),
                 ],
@@ -204,6 +218,47 @@ class DashboardScreen extends StatelessWidget {
               ],
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildUnitSwitcher(BuildContext context) {
+    final auth = context.watch<AuthProvider>();
+    final user = auth.user;
+    final List units = user?['resident_units'] ?? [];
+    final selectedUnit = auth.selectedUnit;
+
+    if (units.isEmpty) return const SizedBox.shrink();
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      decoration: BoxDecoration(
+        color: AppTheme.primaryColor.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppTheme.primaryColor.withOpacity(0.3)),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<int>(
+          value: selectedUnit?['id'],
+          icon: const Icon(Icons.arrow_drop_down, color: AppTheme.primaryColor),
+          onChanged: (int? newValue) {
+            final newUnit = units.firstWhere((u) => u['id'] == newValue);
+            auth.setSelectedUnit(newUnit);
+          },
+          items: units.map<DropdownMenuItem<int>>((dynamic unit) {
+            return DropdownMenuItem<int>(
+              value: unit['id'],
+              child: Text(
+                'Unit ${unit['unit_number']}',
+                style: const TextStyle(
+                  color: AppTheme.primaryColor,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                ),
+              ),
+            );
+          }).toList(),
         ),
       ),
     );

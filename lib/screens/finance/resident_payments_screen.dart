@@ -294,7 +294,13 @@ Status: ${(bill['status'] ?? 'pending').toUpperCase()}
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Expanded(
-                  child: Text(bill['title'] ?? 'Maintenance', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(bill['title'] ?? 'Maintenance', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                      Text('Unit: ${bill['unit_number'] ?? 'N/A'}', style: TextStyle(color: Colors.grey[600], fontSize: 12)),
+                    ],
+                  ),
                 ),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),

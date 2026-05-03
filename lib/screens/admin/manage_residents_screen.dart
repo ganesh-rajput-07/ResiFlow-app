@@ -133,7 +133,15 @@ class _ManageResidentsScreenState extends State<ManageResidentsScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const SizedBox(height: 4),
-                        Text('Flat: $flatText'),
+                        Builder(
+                          builder: (context) {
+                            final List units = r['resident_units'] ?? [];
+                            if (units.isNotEmpty) {
+                              return Text('Units: ${units.map((u) => u['unit_number']).join(", ")}');
+                            }
+                            return Text('Flat: $flatText');
+                          },
+                        ),
                         Text('Parking: $parkingLotText'),
                       ],
                     ),

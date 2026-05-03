@@ -7,13 +7,20 @@ class AuthProvider with ChangeNotifier {
   final ApiService _apiService = ApiService();
   
   Map<String, dynamic>? _user;
+  Map<String, dynamic>? _selectedUnit;
   bool _isLoading = false;
   String? _error;
 
   Map<String, dynamic>? get user => _user;
+  Map<String, dynamic>? get selectedUnit => _selectedUnit;
   bool get isLoading => _isLoading;
   String? get error => _error;
   bool get isAuthenticated => _user != null;
+
+  void setSelectedUnit(Map<String, dynamic>? unit) {
+    _selectedUnit = unit;
+    notifyListeners();
+  }
 
   Future<bool> login(String username, String password) async {
     _setLoading(true);
@@ -88,6 +95,14 @@ class AuthProvider with ChangeNotifier {
       final response = await _apiService.get(ApiConstants.profile);
       if (response.statusCode == 200) {
         _user = jsonDecode(response.body);
+        
+        // Handle multiple units
+        List units = _user?['resident_units'] ?? [];
+        if (units.isNotEmpty && _selectedUnit == null) {
+          // Find primary unit or just use first one
+          _selectedUnit = units.firstWhere((u) => u['is_primary'] == true, orElse: () => units.first);
+        }
+        
         notifyListeners();
       } else {
         await logout(); // Token might be expired/invalid
