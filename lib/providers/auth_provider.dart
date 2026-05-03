@@ -16,6 +16,7 @@ class AuthProvider with ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get error => _error;
   bool get isAuthenticated => _user != null;
+  bool get isRenter => _selectedUnit?['role'] == 'tenant';
 
   void setSelectedUnit(Map<String, dynamic>? unit) {
     _selectedUnit = unit;

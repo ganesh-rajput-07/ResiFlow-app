@@ -4,6 +4,7 @@ import '../../core/constants/api_constants.dart';
 import '../../core/theme/app_theme.dart';
 import '../../services/api_service.dart';
 import '../../widgets/custom_text_field.dart';
+import '../../widgets/rent_badge.dart';
 
 class SocietyDirectoryScreen extends StatefulWidget {
   const SocietyDirectoryScreen({super.key});
@@ -95,7 +96,13 @@ class _SocietyDirectoryScreenState extends State<SocietyDirectoryScreen> {
                                         child: Column(
                                           crossAxisAlignment: CrossAxisAlignment.start,
                                           children: [
-                                            Text('${m['first_name']} ${m['last_name']}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                                            Row(
+                                              children: [
+                                                Text('${m['first_name']} ${m['last_name']}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                                                const SizedBox(width: 8),
+                                                RentBadge(isRenter: m['is_renter'] ?? false),
+                                              ],
+                                            ),
                                             Text('Unit: ${m['unit_number'] ?? 'Not Assigned'} • ${m['role'].toString().toUpperCase()}', style: TextStyle(color: Colors.grey[600], fontSize: 13)),
                                           ],
                                         ),

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import '../../core/constants/api_constants.dart';
 import '../../services/api_service.dart';
+import '../../widgets/rent_badge.dart';
 
 class ManageComplaintsScreen extends StatefulWidget {
   const ManageComplaintsScreen({super.key});
@@ -69,7 +70,13 @@ class _ManageComplaintsScreenState extends State<ManageComplaintsScreen> {
                       margin: const EdgeInsets.only(bottom: 12),
                       child: ExpansionTile(
                         title: Text(c['title'], style: const TextStyle(fontWeight: FontWeight.bold)),
-                        subtitle: Text('By: ${c['raised_by_name'] ?? 'Resident'} (${c['wing_name'] ?? ''} - ${c['unit_number'] ?? 'N/A'})'),
+                        subtitle: Row(
+                          children: [
+                            Text('By: ${c['raised_by_name'] ?? 'Resident'} '),
+                            RentBadge(isRenter: c['is_renter'] ?? false, fontSize: 8),
+                            Text(' (${c['wing_name'] ?? ''} - ${c['unit_number'] ?? 'N/A'})'),
+                          ],
+                        ),
                         trailing: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(color: statusColor.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),

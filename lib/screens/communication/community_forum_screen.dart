@@ -7,6 +7,7 @@ import '../../core/constants/api_constants.dart';
 import '../../core/theme/app_theme.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
+import '../../widgets/rent_badge.dart';
 
 class CommunityForumScreen extends StatefulWidget {
   const CommunityForumScreen({super.key});
@@ -177,7 +178,13 @@ class _CommunityForumScreenState extends State<CommunityForumScreen> {
                                     Row(
                                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                       children: [
-                                        Text(c['author_name'] ?? 'User', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                                        Row(
+                                          children: [
+                                            Text(c['author_name'] ?? 'User', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                                            const SizedBox(width: 4),
+                                            RentBadge(isRenter: c['is_renter'] ?? false, fontSize: 8),
+                                          ],
+                                        ),
                                         if (c['author_wing'] != null)
                                           Text('${c['author_wing']}-${c['author_unit']}', style: const TextStyle(color: Colors.grey, fontSize: 10)),
                                       ],
@@ -274,6 +281,8 @@ class _CommunityForumScreenState extends State<CommunityForumScreen> {
                                         Row(
                                           children: [
                                             Text(post['author_name'] ?? 'Resident', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                                            const SizedBox(width: 4),
+                                            RentBadge(isRenter: post['is_renter'] ?? false),
                                             if (post['author_wing'] != null) ...[
                                               const SizedBox(width: 4),
                                               const Text('•', style: TextStyle(color: Colors.grey)),

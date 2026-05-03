@@ -4,6 +4,10 @@ import 'package:intl/intl.dart';
 import '../../services/api_service.dart';
 import '../../core/constants/api_constants.dart';
 import '../../core/theme/app_theme.dart';
+import '../../widgets/custom_button.dart';
+import '../../widgets/custom_text_field.dart';
+import '../../widgets/rent_badge.dart';
+import './request_renter_account_screen.dart';
 
 class RentingDetailsScreen extends StatefulWidget {
   const RentingDetailsScreen({super.key});
@@ -57,11 +61,19 @@ class _RentingDetailsScreenState extends State<RentingDetailsScreen> {
     }
   }
 
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Renting & Units'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.person_add_alt_1),
+            tooltip: 'Request Renter Account',
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RequestRenterScreen())),
+          ),
+        ],
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -210,7 +222,13 @@ class _RentingDetailsScreenState extends State<RentingDetailsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('${ud['first_name'] ?? ''} ${ud['last_name'] ?? ''}'.trim(), style: const TextStyle(fontWeight: FontWeight.bold)),
+                Row(
+                  children: [
+                    Text('${ud['first_name'] ?? ''} ${ud['last_name'] ?? ''}'.trim(), style: const TextStyle(fontWeight: FontWeight.bold)),
+                    const SizedBox(width: 8),
+                    const RentBadge(isRenter: true, fontSize: 8),
+                  ],
+                ),
                 Text(ud['phone'] ?? 'No phone', style: TextStyle(color: Colors.grey[600], fontSize: 12)),
               ],
             ),

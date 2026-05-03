@@ -4,6 +4,7 @@ import '../../core/constants/api_constants.dart';
 import '../../core/theme/app_theme.dart';
 import '../../services/api_service.dart';
 import '../../widgets/custom_button.dart';
+import '../../widgets/rent_badge.dart';
 
 class ManageResidentsScreen extends StatefulWidget {
   const ManageResidentsScreen({super.key});
@@ -125,9 +126,15 @@ class _ManageResidentsScreenState extends State<ManageResidentsScreen> {
                         style: const TextStyle(color: AppTheme.primaryDark, fontWeight: FontWeight.bold),
                       ),
                     ),
-                    title: Text(
-                      '${r['first_name'] ?? ''} ${r['last_name'] ?? ''}'.trim(),
-                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    title: Row(
+                      children: [
+                        Text(
+                          '${r['first_name'] ?? ''} ${r['last_name'] ?? ''}'.trim(),
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(width: 8),
+                        RentBadge(isRenter: r['is_renter'] ?? false, fontSize: 8),
+                      ],
                     ),
                     subtitle: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,

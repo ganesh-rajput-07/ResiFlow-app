@@ -8,6 +8,7 @@ import '../../services/api_service.dart';
 import '../../providers/auth_provider.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
+import '../../widgets/rent_badge.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -267,6 +268,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                     ),
                     const SizedBox(height: 16),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          '${_firstNameController.text} ${_lastNameController.text}'.trim(),
+                          style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(width: 8),
+                        RentBadge(isRenter: context.watch<AuthProvider>().isRenter),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
                     if (user?['society_name'] != null)
                       Text(user!['society_name'], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: AppTheme.primaryDark)),
                     if (user?['unit_number'] != null)

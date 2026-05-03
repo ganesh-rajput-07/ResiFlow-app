@@ -31,6 +31,7 @@ import '../communication/manage_complaints_screen.dart';
 import '../admin/guard_attendance_report_screen.dart';
 import '../admin/manage_guards_screen.dart';
 import '../profile/renting_details_screen.dart';
+import '../../widgets/rent_badge.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
@@ -86,9 +87,15 @@ class DashboardScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        'Welcome, ${user?['first_name'] ?? user?['username'] ?? 'User'}!',
-                        style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                      Row(
+                        children: [
+                          Text(
+                            'Welcome, ${user?['first_name'] ?? user?['username'] ?? 'User'}!',
+                            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(width: 8),
+                          RentBadge(isRenter: context.watch<AuthProvider>().isRenter),
+                        ],
                       ),
                       if (user?['society_name'] != null)
                         Text(

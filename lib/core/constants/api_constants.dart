@@ -7,6 +7,8 @@ class ApiConstants {
   static const String register = '$baseUrl/auth/register/';
   static const String profile = '$baseUrl/auth/profile/';
   static const String refresh = '$baseUrl/auth/token/refresh/';
+  static const String residentUnits = '$baseUrl/accounts/resident-units/';
+  static const String renterRequests = '$baseUrl/accounts/renter-requests/';
   
   // Society Config & Management
   static const String societies = '$baseUrl/society/societies/';
